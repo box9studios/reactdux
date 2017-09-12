@@ -1,6 +1,6 @@
 {
   "name": "reactdux",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "ISC",
   "repository": {
     "type": "git",
@@ -9,6 +9,7 @@
   "scripts": {
     "build": "webpack -p"
   },
+  "main": "dist/bundle.js",
   "dependencies": {
     "prop-types": "^15.5.10",
     "react": "^15.4.2",
