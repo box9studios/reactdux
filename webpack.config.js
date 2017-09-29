@@ -1,5 +1,6 @@
 const webpack = require('webpack');
-const config = {
+
+module.exports = {
   entry: './src/index.js',
   output: {
     path: './dist',
@@ -26,5 +27,3 @@ const config = {
     }),
   ],
 };
-
-module.exports = config;

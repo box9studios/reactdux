@@ -1,14 +1,8 @@
-import * as reactModule from 'react';
-import { Component as ReactComponent, createElement } from 'react';
-import { PropTypes as ReactPropTypes } from 'prop-types';
+import React, { createElement } from 'react';
 import { render } from 'react-dom';
 import { createStore, combineReducers as reduxCombineReducers, 
   applyMiddleware, compose } from 'redux';
 import { connect, Provider } from 'react-redux';
-
-export const React = reactModule;
-export const Component = ReactComponent;
-export const PropTypes = ReactPropTypes;
 
 let masterStore = null;
 
