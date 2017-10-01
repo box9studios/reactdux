@@ -62,18 +62,27 @@ function combineReducers(reducers) {
   return reduxCombineReducers(reducers);
 }
 
-export function createApp(component, reducer = {}, middleware = [], debug = false) {
-  const allMiddleware = createMiddleware(middleware, debug);
-  const allReducers = reducer.__isBoundReducer ? reducer : combineReducers(reducer);
-  const store = createStore(allReducers, allMiddleware);
-  masterStore = store;
-  const layout = constructAppLayout(component);
-  const target = document.createElement('div');
-  render(
-    createElement(Provider, { store }, layout),
-    target,
+export function createApp({
+  component, 
+  reducer = {}, 
+  middleware = [], 
+  debug = false,
+}) {
+  const store = createStore(
+    reducer.__isBoundReducer ? reducer : combineReducers(reducer),
+    createMiddleware(middleware, debug),
   );
-  document.body.appendChild(target.children[0]);
+  masterStore = store;
+  const element = document.createElement('div');
+  render(
+    createElement(
+      Provider, 
+      { store }, 
+      constructAppLayout(component),
+    ),
+    element,
+  );
+  document.body.appendChild(element.children[0]);
 }
 
 export function createReducer(defaultState = {}, actions = []) {
