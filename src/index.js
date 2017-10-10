@@ -1,21 +1,18 @@
-import React, { createElement } from 'react';
+import { createElement } from 'react';
 import { render } from 'react-dom';
-import { createStore, combineReducers as reduxCombineReducers, 
-  applyMiddleware, compose } from 'redux';
 import { connect, Provider } from 'react-redux';
+import { 
+  createStore, 
+  combineReducers as reduxCombineReducers, 
+  applyMiddleware, 
+  compose,
+} from 'redux';
 
+const production = process.env.NODE_ENV === 'production';
 let masterStore = null;
 
 function isArray(value) {
   return Object.prototype.toString.call(value) === '[object Array]';
-}
-
-function constructAppLayout(components) {
-  if (!isArray(components)) {
-    return components;
-  }
-  const node = createElement('div', { style: { height: '100%' }}, components);
-  return node;
 }
 
 function loggerMiddleware(store) {
@@ -45,12 +42,13 @@ function transformMiddleware(store) {
   };
 }
 
-function createMiddleware(middleware, logActions) {
+
+function createMiddleware(middleware) {
   const list = [...middleware];
-  if (logActions) {
+  if (production) {
     list.push(loggerMiddleware);
   } else {
-    list.push(transformMiddleware);
+    list.push(() => next => action => next(action));
   }
   return compose(applyMiddleware(...list));
 }
@@ -62,15 +60,10 @@ function combineReducers(reducers) {
   return reduxCombineReducers(reducers);
 }
 
-export function createApp({
-  component, 
-  reducer = {}, 
-  middleware = [], 
-  debug = false,
-}) {
+export function createApp(component, reducer = {}, middleware = [], run = () => {}) {
   const store = createStore(
     reducer.__isBoundReducer ? reducer : combineReducers(reducer),
-    createMiddleware(middleware, debug),
+    createMiddleware(middleware),
   );
   masterStore = store;
   const element = document.createElement('div');
@@ -78,11 +71,16 @@ export function createApp({
     createElement(
       Provider, 
       { store }, 
-      constructAppLayout(component),
+      component,
     ),
     element,
   );
   document.body.appendChild(element.children[0]);
+  if (requestAnimationFrame) {
+    requestAnimationFrame(() => run());
+  } else {
+    setTimeout(() => run());
+  }
 }
 
 export function createReducer(defaultState = {}, actions = []) {
@@ -100,10 +98,10 @@ export function createReducer(defaultState = {}, actions = []) {
   return reducer;
 }
 
-export function createContainer(component, mapToProps) {
+export function createContainer(component, mapToProps, wrappers = []) {
   const toProps = typeof mapToProps === 'function' ? mapToProps : () => mapToProps;
   const mapStateToProps = (state, ownProps) => {
-    const result = toProps(ownProps)
+    const result = toProps(ownProps, masterStore)
     const copy = { ...result };
     for (const i in copy) {
       if (typeof copy[i] === 'function' && copy[i].__isBoundSelector) {
@@ -113,6 +111,10 @@ export function createContainer(component, mapToProps) {
     return copy;
   };
   const mapDispatchToProps = () => ({});
+  if (wrappers.length) {
+    const connector = connect(mapStateToProps, mapDispatchToProps);
+    return compose(...wrappers, connector)(component);
+  }
   return connect(mapStateToProps, mapDispatchToProps)(component);
 }
 
@@ -128,10 +130,10 @@ export function createAction(name, method) {
   return wrapper;
 }
 
-export function createSelector(method) {
+export function createSelector(method, state) {
   const wrapper = (...args) => {
-    const state = masterStore.getState();
-    const result = method(state, ...args);
+    const curState = state || masterStore.getState();
+    const result = method(curState, ...args);
     return result;
   };
   wrapper.__isBoundSelector = true;
