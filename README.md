@@ -1,4 +1,4 @@
-### Reactdux
+# Reactdux
 
 A collection of javascript functions to help orchestrate react/redux applications.
 
