@@ -120,9 +120,20 @@ export function createContainer(component, mapToProps, wrappers = []) {
 
 export function createAction(name, method) {
   const theName = typeof name === 'string' ? name : undefined;
-  const theMethod = typeof method === 'function' ? method : name;
+  const theMethod = typeof name === 'function' ? name : method;
   const wrapper = (...args) => {
-    const payload = theMethod(...args);
+    const payload = (() => {
+      if (theMethod) {
+        return theMethod(...args);
+      }
+      if (!args.length) {
+        return undefined;
+      }
+      if (args.length === 1) {
+        return args[0];
+      }
+      return args;
+    })();
     const result = { type: wrapper, payload, __name: theName };
     masterStore.dispatch(result);
   };

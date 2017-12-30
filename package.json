@@ -1,13 +1,14 @@
 {
   "name": "reactdux",
-  "version": "0.0.7",
+  "version": "0.0.11",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/stevebinder/reactdux"
   },
   "scripts": {
-    "build": "NODE_ENV=production webpack -p"
+    "build": "NODE_ENV=production webpack -p",
+    "prepare": "npm run build"
   },
   "main": "dist/bundle.js",
   "dependencies": {
