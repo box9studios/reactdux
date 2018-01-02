@@ -1,84 +1,19 @@
 import { createElement } from 'react';
+import { applyMiddleware, combineReducers, compose, createStore } from 'redux';
 import { render } from 'react-dom';
 import { connect, Provider } from 'react-redux';
-import { 
-  createStore, 
-  combineReducers as reduxCombineReducers, 
-  applyMiddleware, 
-  compose,
-} from 'redux';
 
-const production = process.env.NODE_ENV === 'production';
 let masterStore = null;
 
-function isArray(value) {
-  return Object.prototype.toString.call(value) === '[object Array]';
-}
-
-function loggerMiddleware(store) {
-  return next => (action) => {
-    let error = null;
-    try {
-      next(action);
-    } catch (e) {
-      error = e;
-    }
-    const { type, payload } = action;
-    const state = store.getState();
-    const { __name: name = 'ACTION' } = action;
-    console.groupCollapsed(name);
-    console.log('payload:', payload);
-    console.log('state:  ', state);
-    console.groupEnd();
-    if (error) {
-      throw error;
-    }
-  };
-}
-
-function transformMiddleware(store) {
-  return next => (action) => {
-    next(action);
-  };
-}
-
-
-function createMiddleware(middleware) {
-  const list = [...middleware];
-  if (production) {
-    list.push(loggerMiddleware);
-  } else {
-    list.push(() => next => action => next(action));
-  }
-  return compose(applyMiddleware(...list));
-}
-
-function combineReducers(reducers) {
-  if (!Object.keys(reducers).length) {
-    reducers._ = createReducer();
-  }
-  return reduxCombineReducers(reducers);
-}
-
-export function createApp(component, reducer = {}, middleware = [], run = () => {}) {
-  const store = createStore(
+export function createApp(component, reducer = {}, middleware, run) {
+  masterStore = createStore(
     reducer.__isBoundReducer ? reducer : combineReducers(reducer),
-    createMiddleware(middleware),
+    !middleware ? undefined : applyMiddleware(middleware),
   );
-  masterStore = store;
   const element = document.createElement('div');
-  render(
-    createElement(
-      Provider, 
-      { store }, 
-      component,
-    ),
-    element,
-  );
+  render(createElement(Provider, { store: masterStore }, component ), element);
   document.body.appendChild(element.children[0]);
-  if (requestAnimationFrame) {
-    requestAnimationFrame(() => run());
-  } else {
+  if (run) {
     setTimeout(() => run());
   }
 }
@@ -94,10 +29,7 @@ export function createReducer(defaultState = {}, actions = []) {
     if (changes === undefined) {
       return state;
     }
-    return { 
-      ...state, 
-      ...changes,
-    };
+    return { ...state, ...changes };
   };
   reducer.__isBoundReducer = true;
   return reducer;
@@ -146,12 +78,8 @@ export function createAction(name, method) {
   return wrapper;
 }
 
-export function createSelector(method, state) {
-  const wrapper = (...args) => {
-    const curState = state || masterStore.getState();
-    const result = method(curState, ...args);
-    return result;
-  };
+export function createSelector(method) {
+  const wrapper = (...args) => method(masterStore.getState(), ...args);
   wrapper.__isBoundSelector = true;
   return wrapper;
 }
