@@ -86,14 +86,19 @@ export function createApp(component, reducer = {}, middleware = [], run = () => 
 export function createReducer(defaultState = {}, actions = []) {
   const actionMap = new Map(actions);
   const reducer = (state = defaultState, action) => {
-    const { type, payload } = action;
-    const method = actionMap.get(type);
-    if (method) {
-      const changes = method(payload);
-      return { ...state, ...changes };
+    const method = actionMap.get(action.type);
+    if (!method) {
+      return state;
     }
-    return { ...state };
-  }
+    const changes = method(action.payload, state);
+    if (changes === undefined) {
+      return state;
+    }
+    return { 
+      ...state, 
+      ...changes,
+    };
+  };
   reducer.__isBoundReducer = true;
   return reducer;
 }
