@@ -2,8 +2,10 @@ import { createElement } from 'react';
 import { applyMiddleware, combineReducers, compose, createStore } from 'redux';
 import { render } from 'react-dom';
 import { connect, Provider } from 'react-redux';
+import uuid from 'uuid';
 
 let masterStore = null;
+const actionNameMap = {};
 
 export function createApp(component, reducer = {}, middleware, run) {
   masterStore = createStore(
@@ -21,12 +23,12 @@ export function createApp(component, reducer = {}, middleware, run) {
 export function createReducer(defaultState = {}, actions = []) {
   const actionMap = new Map(actions);
   const reducer = (state = defaultState, action) => {
-    const method = actionMap.get(action.type);
+    const method = actionMap.get(actionNameMap[action.type]);
     if (!method) {
       return state;
     }
     const changes = method(action.payload, state);
-    if (changes === undefined) {
+    if (!changes) {
       return state;
     }
     return { ...state, ...changes };
@@ -48,15 +50,17 @@ export function createContainer(component, mapToProps, wrappers = []) {
     return copy;
   };
   const mapDispatchToProps = () => ({});
-  if (wrappers.length) {
-    const connector = connect(mapStateToProps, mapDispatchToProps);
-    return compose(...wrappers, connector)(component);
+  if (!wrappers.length) {
+    return connect(mapStateToProps, mapDispatchToProps)(component);
   }
-  return connect(mapStateToProps, mapDispatchToProps)(component);
+  return compose(
+    ...wrappers, 
+    connect(mapStateToProps, mapDispatchToProps),
+  )(component);
 }
 
 export function createAction(name, method) {
-  const theName = typeof name === 'string' ? name : undefined;
+  const theName = typeof name === 'string' ? name : `action-${uuid()}`;
   const theMethod = typeof name === 'function' ? name : method;
   const wrapper = (...args) => {
     const payload = (() => {
@@ -71,10 +75,10 @@ export function createAction(name, method) {
       }
       return args;
     })();
-    const result = { type: wrapper, payload, __name: theName };
-    masterStore.dispatch(result);
+    masterStore.dispatch({ type: theName, payload });
   };
   wrapper.__isBoundAction = true;
+  actionNameMap[theName] = wrapper;
   return wrapper;
 }
 

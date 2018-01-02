@@ -1,64 +1,69 @@
 # Reactdux
 
-A collection of javascript functions to help orchestrate react/redux applications.
+A collection of javascript functions to help orchestrate react + redux applications.
 
 
-### createApp(component, reducer, middleware, run);
+## Create an Action
 
-```javascript
-createApp(
-  <div>Hi</div>,     // any react element/component
-  { text: 'Hello' }, // a reducer or result from createReducer
-  [a, b, c],         // an array of middlwares
-  run,               // code to run as soon as the app is rendered
-);
+### 1) Simple Method
+
+```js
+const setText = createAction();
 ```
 
+### 2) Add a Custom Payload Creator
 
-### createContainer(component, mapToProps, wrappingComponents)
-
-```javascript
-createContainer(
-  MyComponent,
-  (ownProps, store) => ({ text: 'hello' }),
-  [WrappingContainer1, WrappingContainer2],
-);
+```js
+const setText = createAction((a, b) => ({ a, b }));
 ```
 
+### 3) Add a Name/Label for Better Logging
 
-### createSelector(method, state)
-
-```javascript
-  const selectText = createSelector((state) => state.text);
+```js
+const setText = createAction('TEXT/SET', (a, b) => ({ a, b }));
 ```
 
-Or, to use a state other than the current state, pass one in:
-```javascript
-  const selectText = createSelector((state) => state.text, state);
+## Create a Reducer
+
+```js
+const initialState = {
+  name: 'Joe',
+  text: 'Hello World',
+};
+createReducer(initialState, [
+  [setText, text => ({ text })],
+  [setName, (payload) => {
+    return { name: payload.name };
+  }],
+]);
 ```
 
+## Create the App
 
-### createAction(name, method)
-```javascript
-const setText = createAction(text => ({ text }));
+```js
+createApp(<Root />, myReducer, middlewareList, initializeMethod);
 ```
 
-Or, add a text string to identify your action when logging:
-```javascript
-const setText = createAction('setText', text => ({ text }));
+Simply provide an entry component and a reducer. Optionally you can provide an array of middlewares to apply and an initialization method to call when the store is ready in order to dispatch actions to set any stored data.
+
+
+## Create a Container
+
+```js
+createContainer(MyComponent, (ownProps, state) => ({ 
+   name: state.name,
+   text: state.text,
+}), [WrappingContainer1, WrappingContainer2]);
 ```
 
+Provide a component that will be wrapped with the result of the connecting method. Optionally you can also wrap this container by providing additional providers.
 
-### createReducer(defaultState, actions)
 
-```javascript
-createReducer(
-  { id: 1, name: 'Me' } // the default state
-  [
-    [firstAction, payload => ({ text: 'hello' })],
-    [lastAction, payload => ({ text: 'goodbye' })],
-  ]
-);
+## Create a Selector
+
+```js
+  const selectText = createSelector(state => state.text);
 ```
+
 
 *\* Made with [mrkdown.io](http://mrkdown.io)*
