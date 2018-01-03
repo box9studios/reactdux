@@ -7,10 +7,10 @@ import uuid from 'uuid';
 let masterStore = null;
 const actionNameMap = {};
 
-export function createApp(component, reducer = {}, middleware, run) {
+export function createApp(component, reducer = {}, middleware = [], run) {
   masterStore = createStore(
     reducer.__isBoundReducer ? reducer : combineReducers(reducer),
-    !middleware ? undefined : applyMiddleware(middleware),
+    !middleware.length ? undefined : applyMiddleware(middleware),
   );
   const element = document.createElement('div');
   render(createElement(Provider, { store: masterStore }, component ), element);
