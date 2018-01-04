@@ -1,6 +1,6 @@
 {
   "name": "reactdux",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -15,8 +15,7 @@
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
     "react-redux": "^5.0.0",
-    "redux": "^3.7.2",
-    "uuid": "^3.1.0"
+    "redux": "^3.7.2"
   },
   "devDependencies": {
     "babel-core": "^6.22.1",
