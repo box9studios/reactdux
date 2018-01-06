@@ -24,7 +24,7 @@ export function createReducer(defaultState = {}, actions = []) {
     if (!method) {
       return state;
     }
-    const changes = method(action.payload, state);
+    const changes = method(state, action.payload);
     if (!changes) {
       return state;
     }
@@ -56,11 +56,15 @@ export function createContainer(component, mapToProps, wrappers = []) {
   )(component);
 }
 
-export function createAction(method) {
+export function createAction(payloadCreator, metaCreator) {
   const wrapper = (...args) => {
     const payload = (() => {
-      if (method) {
-        return method(...args);
+      if (payloadCreator) {
+        try {
+          return payloadCreator(...args);
+        } catch (e) {
+          return e;
+        }
       }
       if (!args.length) {
         return undefined;
@@ -70,7 +74,28 @@ export function createAction(method) {
       }
       return args;
     })();
-    masterStore.dispatch({ type: wrapper, payload });
+    const meta = (() => {
+      if (metaCreator) {
+        try {
+          return metaCreator(...args);
+        } catch (e) {
+          return e;
+        }
+      }
+      if (!args.length) {
+        return undefined;
+      }
+      if (args.length === 1) {
+        return args[0];
+      }
+      return args;
+    })();
+    masterStore.dispatch({
+      error: payload instanceof Error,
+      meta,
+      payload,
+      type: wrapper,
+    });
   };
   wrapper.__isBoundAction = true;
   return wrapper;
