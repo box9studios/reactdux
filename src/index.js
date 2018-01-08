@@ -5,16 +5,13 @@ import { connect, Provider } from 'react-redux';
 
 let masterStore = null;
 
-export function createApp(component, reducer = {}, middleware = [], run) {
+export function createApp(component, reducer = {}, middleware = []) {
   const finalReducer = reducer.__isBoundReducer ? reducer : combineReducers(reducer);
   const finalMiddleware = middleware.length ? applyMiddleware(...middleware) : undefined;
   masterStore = createStore(finalReducer, finalMiddleware);
   const element = document.createElement('div');
   render(createElement(Provider, { store: masterStore }, component ), element);
   document.body.appendChild(element.children[0]);
-  if (run) {
-    setTimeout(run);
-  }
 }
 
 export function createReducer(defaultState = {}, config = []) {
