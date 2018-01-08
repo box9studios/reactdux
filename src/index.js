@@ -17,18 +17,18 @@ export function createApp(component, reducer = {}, middleware = [], run) {
   }
 }
 
-export function createReducer(defaultState = {}, actions = []) {
-  const actionMap = new Map(actions);
+export function createReducer(defaultState = {}, config = []) {
   const reducer = (state = defaultState, action) => {
-    const method = actionMap.get(action.type);
-    if (!method) {
-      return state;
-    }
-    const changes = method(state, action.payload);
-    if (!changes) {
-      return state;
-    }
-    return { ...state, ...changes };
+    const handlers = config
+      .filter(([type]) => type === action.type)
+      .map(([type, handler]) => handler);
+    return handlers.reduce((prevState, handler) => {
+      const changes = handler(state, action.payload);
+      return {
+        ...prevState,
+        ...(typeof changes === 'object' ? changes : {}),
+      };
+    }, { ...state });
   };
   reducer.__isBoundReducer = true;
   return reducer;
@@ -106,3 +106,13 @@ export function createSelector(method) {
   wrapper.__isBoundSelector = true;
   return wrapper;
 }
+
+export const createSaga = config => store => next => (action) => {
+  next(action);
+  const handlers = config
+    .filter(([type]) => type === action.type)
+    .map(([type, handler]) => handler);
+  if (handlers.length) {
+    handlers.forEach(handler => handler(action.payload));
+  }
+};
