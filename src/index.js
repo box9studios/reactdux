@@ -101,8 +101,12 @@ export function createAction(payloadCreator, metaCreator) {
 
 export function createSelector(...args) {
   const safeArgs = [...args];
+  if (args.length === 1 & (typeof args[0] == 'string' || typeof(args[0]) === 'number')) {
+    const firstArg = args[0];
+    safeArgs.splice(0, 1, state => state[firstArg]);
+  }
   if (safeArgs.length < 2) {
-    safeArgs.push(state => state);
+    safeArgs.unshift(state => state);
   }
   const method = createSelectorReselect(...safeArgs);
   const wrapper = (...args2) => method(masterStore.getState(), ...args2);

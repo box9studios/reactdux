@@ -41,7 +41,7 @@ createReducer(initialState, [
 ## Create the App
 
 ```js
-createApp(<Root />, myReducer, middlewareList, initializeMethod);
+createApp(<Root />, reducerInstance, middlewareList);
 ```
 
 Simply provide an entry component and a reducer. Optionally you can provide an array of middlewares to apply and an initialization method to call when the store is ready in order to dispatch actions to set any stored data.
@@ -50,10 +50,11 @@ Simply provide an entry component and a reducer. Optionally you can provide an a
 ## Create a Container
 
 ```js
-createContainer(MyComponent, (ownProps, state) => ({ 
-   name: state.name,
+createContainer(componentInstance, (props, state) => ({ 
+   name: 'Joe',
    text: state.text,
-}), [WrappingContainer1, WrappingContainer2]);
+   value: mySelector,
+}), [Provider1, Provider2]);
 ```
 
 Provide a component that will be wrapped with the result of the connecting method. Optionally you can also wrap this container by providing additional providers.
@@ -62,7 +63,13 @@ Provide a component that will be wrapped with the result of the connecting metho
 ## Create a Selector
 
 ```js
-  const selectText = createSelector(state => state.text);
+  const selectText = createSelector('text');
+  const selectText = createSelector(state => state.text.reverse());
+  const selectText = createSelector(
+    state => state.a, 
+    state => state.b,
+    (a, b) => Math.max(a, b),
+  )
 ```
 
 
