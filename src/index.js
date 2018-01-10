@@ -2,6 +2,7 @@ import { createElement } from 'react';
 import { applyMiddleware, combineReducers, compose, createStore } from 'redux';
 import { render } from 'react-dom';
 import { connect, Provider } from 'react-redux';
+import { createSelector as createSelectorReselect } from 'reselect';
 
 let masterStore = null;
 
@@ -98,8 +99,13 @@ export function createAction(payloadCreator, metaCreator) {
   return wrapper;
 }
 
-export function createSelector(method) {
-  const wrapper = (...args) => method(masterStore.getState(), ...args);
+export function createSelector(...args) {
+  const safeArgs = [...args];
+  if (safeArgs.length < 2) {
+    safeArgs.push(state => state);
+  }
+  const method = createSelectorReselect(...safeArgs);
+  const wrapper = (...args2) => method(masterStore.getState(), ...args2);
   wrapper.__isBoundSelector = true;
   return wrapper;
 }
