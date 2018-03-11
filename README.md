@@ -50,11 +50,14 @@ Simply provide an entry component and a reducer. Optionally you can provide an a
 ## Create a Container
 
 ```js
-createContainer(componentInstance, (props, state) => ({ 
+createContainer((props, state) => ({
    name: 'Joe',
    text: state.text,
    value: mySelector,
-}), [Provider1, Provider2]);
+}), [
+  Provider1,
+  Provider2,
+], componentInstance);
 ```
 
 Provide a component that will be wrapped with the result of the connecting method. Optionally you can also wrap this container by providing additional providers.
@@ -66,7 +69,7 @@ Provide a component that will be wrapped with the result of the connecting metho
   const selectText = createSelector('text');
   const selectText = createSelector(state => state.text.reverse());
   const selectText = createSelector(
-    state => state.a, 
+    state => state.a,
     state => state.b,
     (a, b) => Math.max(a, b),
   )

@@ -32,7 +32,7 @@ export function createReducer(defaultState = {}, config = []) {
   return reducer;
 }
 
-export function createContainer(component, mapToProps, wrappers = []) {
+export function createContainer(mapToProps, wrappers, component) {
   const toProps = typeof mapToProps === 'function' ? mapToProps : () => mapToProps;
   const mapStateToProps = (state, ownProps) => {
     const result = toProps(ownProps, masterStore)
@@ -45,13 +45,10 @@ export function createContainer(component, mapToProps, wrappers = []) {
     return copy;
   };
   const mapDispatchToProps = () => ({});
-  if (!wrappers.length) {
-    return connect(mapStateToProps, mapDispatchToProps)(component);
-  }
   return compose(
-    ...wrappers, 
+    ...(component ? wrappers : []),
     connect(mapStateToProps, mapDispatchToProps),
-  )(component);
+  )(component || wrappers);
 }
 
 export function createAction(payloadCreator, metaCreator) {
