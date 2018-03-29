@@ -1,7 +1,7 @@
 # Reactdux
 
-A collection of javascript functions to help orchestrate react + redux applications.
-
+A collection of javascript functions to help orchestrate react + redux applications.  
+```npm install reactdux```
 
 ## Create an Action
 
