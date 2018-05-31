@@ -2,7 +2,6 @@ import { createElement } from 'react';
 import { applyMiddleware, combineReducers, compose, createStore } from 'redux';
 import { render } from 'react-dom';
 import { connect, Provider } from 'react-redux';
-import { createSelector as createSelectorReselect } from 'reselect';
 
 let masterStore = null;
 
@@ -97,15 +96,10 @@ export function createAction(payloadCreator, metaCreator) {
 }
 
 export function createSelector(...args) {
-  const safeArgs = [...args];
-  if (args.length === 1 & (typeof args[0] == 'string' || typeof(args[0]) === 'number')) {
-    const firstArg = args[0];
-    safeArgs.splice(0, 1, state => state[firstArg]);
-  }
-  if (safeArgs.length < 2) {
-    safeArgs.unshift(state => state);
-  }
-  const method = createSelectorReselect(...safeArgs);
+  const firstArg = args[0];
+  const method = typeof firstArg === 'function'
+    ? firstArg
+    : state => state[firstArg];
   const wrapper = (...args2) => method(masterStore.getState(), ...args2);
   wrapper.__isBoundSelector = true;
   return wrapper;
