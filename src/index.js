@@ -6,7 +6,7 @@ import { connect, Provider } from 'react-redux';
 let masterStore = null;
 
 export function createApp(component, reducer = {}, middleware = []) {
-  const finalReducer = reducer.__isBoundReducer ? reducer : combineReducers(reducer);
+  const finalReducer = reducer.__isReactduxReducer ? reducer : combineReducers(reducer);
   const finalMiddleware = middleware.length ? applyMiddleware(...middleware) : undefined;
   masterStore = createStore(finalReducer, finalMiddleware);
   const element = document.createElement('div');
@@ -20,24 +20,26 @@ export function createReducer(defaultState = {}, config = []) {
       .filter(([type]) => type === action.type)
       .map(([type, handler]) => handler);
     return handlers.reduce((prevState, handler) => {
-      const changes = handler(state, action.payload);
+      const changes = handler(state, ...action.payload);
       return {
         ...prevState,
         ...(typeof changes === 'object' ? changes : {}),
       };
     }, { ...state });
   };
-  reducer.__isBoundReducer = true;
+  reducer.__isReactduxReducer = true;
   return reducer;
 }
 
 export function createContainer(mapToProps, wrappers, component) {
-  const toProps = typeof mapToProps === 'function' ? mapToProps : () => mapToProps;
+  const toProps = typeof mapToProps === 'function'
+    ? mapToProps
+    : () => mapToProps;
   const mapStateToProps = (state, ownProps) => {
     const result = toProps(ownProps, masterStore)
     const copy = { ...result };
     for (const i in copy) {
-      if (typeof copy[i] === 'function' && copy[i].__isBoundSelector) {
+      if (typeof copy[i] === 'function' && copy[i].__isReactduxSelector) {
         copy[i] = copy[i]();
       }
     }
@@ -50,48 +52,24 @@ export function createContainer(mapToProps, wrappers, component) {
   )(component || wrappers);
 }
 
-export function createAction(payloadCreator, metaCreator) {
+export function createAction(payloadCreator) {
   const wrapper = (...args) => {
     const payload = (() => {
       if (payloadCreator) {
         try {
-          return payloadCreator(...args);
+          return [payloadCreator(...args)];
         } catch (e) {
-          return e;
+          return [];
         }
-      }
-      if (!args.length) {
-        return undefined;
-      }
-      if (args.length === 1) {
-        return args[0];
-      }
-      return args;
-    })();
-    const meta = (() => {
-      if (metaCreator) {
-        try {
-          return metaCreator(...args);
-        } catch (e) {
-          return e;
-        }
-      }
-      if (!args.length) {
-        return undefined;
-      }
-      if (args.length === 1) {
-        return args[0];
       }
       return args;
     })();
     masterStore.dispatch({
-      error: payload instanceof Error,
-      meta,
       payload,
       type: wrapper,
     });
   };
-  wrapper.__isBoundAction = true;
+  wrapper.__isReactduxAction;
   return wrapper;
 }
 
@@ -113,7 +91,7 @@ export function createSelector(...args) {
     ? args[0]
     : state => getPathValue(state, args);
   const wrapper = (...args2) => method(masterStore.getState(), ...args2);
-  wrapper.__isBoundSelector = true;
+  wrapper.__isReactduxSelector = true;
   return wrapper;
 }
 
