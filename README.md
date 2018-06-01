@@ -1,7 +1,11 @@
 # Reactdux
 
 A collection of javascript functions to help orchestrate react + redux applications.
-```npm install reactdux```
+
+```
+npm install reactdux
+```
+
 
 
 ## Apps
@@ -97,6 +101,7 @@ const selectText = createSelector(state => state.text);
 ```js
 const selectText = createSelector((state, id) => state.data[id]);
 ```
+
 
 
 *Made with [mrkdown.io](http://mrkdown.io)*
