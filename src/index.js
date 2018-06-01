@@ -95,11 +95,23 @@ export function createAction(payloadCreator, metaCreator) {
   return wrapper;
 }
 
+function getPathValue(obj, paths) {
+  let value;
+  let pointer = obj;
+  try {
+    for (let i = 0; i < paths.length; ++i) {
+      pointer = pointer[paths[i]];
+      value = pointer;
+    }
+  } catch (e) {}
+  return value;
+}
+
 export function createSelector(...args) {
   const firstArg = args[0];
-  const method = typeof firstArg === 'function'
-    ? firstArg
-    : state => state[firstArg];
+  const method = typeof args[0] === 'function'
+    ? args[0]
+    : state => getPathValue(state, args);
   const wrapper = (...args2) => method(masterStore.getState(), ...args2);
   wrapper.__isBoundSelector = true;
   return wrapper;
