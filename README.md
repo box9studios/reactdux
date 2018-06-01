@@ -1,79 +1,98 @@
 # Reactdux
 
-A collection of javascript functions to help orchestrate react + redux applications.  
+A collection of javascript functions to help orchestrate react + redux applications.
 ```npm install reactdux```
 
-## Create an Action
 
-### 1) Simple Method
+## Apps
+
+```js
+createApp(<App />, reducer, middleware);
+```
+
+## Actions
 
 ```js
 const setText = createAction();
 ```
-
-### 2) Add a Custom Payload Creator
-
 ```js
 const setText = createAction((a, b) => ({ a, b }));
 ```
-
-### 3) Add a Name/Label for Better Logging
-
 ```js
-const setText = createAction('TEXT/SET', (a, b) => ({ a, b }));
+const setText = createAction('SET_TEXT', (a, b) => ({ a, b }));
 ```
 
-## Create a Reducer
+## Reducers
 
 ```js
-const initialState = {
-  name: 'Joe',
-  text: 'Hello World',
-};
-createReducer(initialState, [
-  [setText, text => ({ text })],
-  [setName, (payload) => {
-    return { name: payload.name };
-  }],
-]);
+createReducer(
+  {
+    name: 'Joe',
+    text: 'Hello World',
+  },
+  [
+    [setText, text => ({ text })],
+    [setName, (payload) => {
+      return { name: payload.name };
+    }],
+  ],
+);
 ```
 
-## Create the App
+## Containers
 
 ```js
-createApp(<Root />, reducerInstance, middlewareList);
+createContainer(
+  { data: selectData },
+  ({ data }) => <div>{data}</div>,
+);
+```
+```js
+creatContainer(
+  { data: selectData('a', 'b') },
+  ({ data }) => <div>{data}</div>,
+);
+```
+```js
+createContainer(
+  (props, state) => ({
+   name: props.history.location.query.name,
+   age: state.age,
+   job: selectJob('joe'),
+   height: selectHeight,
+  }).
+  class extends React.Component {
+    render() {
+      return <div>{this.props.name}</div>;
+    }
+  },
+);
+```
+```js
+createContainer(
+  { data: selectData },
+  [
+    withRouter,
+    withTranslation,
+  ],
+  () => <div>Wow</div>,
+);
 ```
 
-Simply provide an entry component and a reducer. Optionally you can provide an array of middlewares to apply and an initialization method to call when the store is ready in order to dispatch actions to set any stored data.
-
-
-## Create a Container
+## Selectors
 
 ```js
-createContainer((props, state) => ({
-   name: 'Joe',
-   text: state.text,
-   value: mySelector,
-}), [
-  Provider1,
-  Provider2,
-], componentInstance);
+const selectText = createSelector('key');
 ```
-
-Provide a component that will be wrapped with the result of the connecting method. Optionally you can also wrap this container by providing additional providers.
-
-
-## Create a Selector
-
 ```js
-  const selectText = createSelector('text');
-  const selectText = createSelector(state => state.text.reverse());
-  const selectText = createSelector(
-    state => state.a,
-    state => state.b,
-    (a, b) => Math.max(a, b),
-  )
+const selectText = createSelector('path', 'to', 'key');
+```
+```js
+const selectText = createSelector(state => state.text);
+```
+```js
+const selectText = createSelector((state, id) => state.data[id]);
 ```
 
 
-*\* Made with [mrkdown.io](http://mrkdown.io)*
+*Made with [mrkdown.io](http://mrkdown.io)*
