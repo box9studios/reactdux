@@ -5,6 +5,29 @@ import { connect, Provider } from 'react-redux';
 
 let masterStore = null;
 
+function getPathValue(obj, paths) {
+  let value;
+  let pointer = obj;
+  try {
+    for (let i = 0; i < paths.length; ++i) {
+      pointer = pointer[paths[i]];
+      value = pointer;
+    }
+  } catch (e) {}
+  return value;
+}
+
+export function createAction(payloadCreator) {
+  const wrapper = (...args) => {
+    const payload = payloadCreator
+      ? [payloadCreator(...args)]
+      : args;
+    masterStore.dispatch({ payload, type: wrapper });
+  };
+  wrapper.__isReactduxAction;
+  return wrapper;
+}
+
 export function createApp(component, reducer = {}, middleware = []) {
   const finalReducer = reducer.__isReactduxReducer ? reducer : combineReducers(reducer);
   const finalMiddleware = middleware.length ? applyMiddleware(...middleware) : undefined;
@@ -12,23 +35,6 @@ export function createApp(component, reducer = {}, middleware = []) {
   const element = document.createElement('div');
   render(createElement(Provider, { store: masterStore }, component ), element);
   document.body.appendChild(element.children[0]);
-}
-
-export function createReducer(defaultState = {}, config = []) {
-  const reducer = (state = defaultState, action) => {
-    const handlers = config
-      .filter(([type]) => type === action.type)
-      .map(([type, handler]) => handler);
-    return handlers.reduce((prevState, handler) => {
-      const changes = handler(state, ...action.payload);
-      return {
-        ...prevState,
-        ...(typeof changes === 'object' ? changes : {}),
-      };
-    }, { ...state });
-  };
-  reducer.__isReactduxReducer = true;
-  return reducer;
 }
 
 export function createContainer(mapToProps, wrappers, component) {
@@ -52,37 +58,21 @@ export function createContainer(mapToProps, wrappers, component) {
   )(component || wrappers);
 }
 
-export function createAction(payloadCreator) {
-  const wrapper = (...args) => {
-    const payload = (() => {
-      if (payloadCreator) {
-        try {
-          return [payloadCreator(...args)];
-        } catch (e) {
-          return [];
-        }
-      }
-      return args;
-    })();
-    masterStore.dispatch({
-      payload,
-      type: wrapper,
-    });
+export function createReducer(defaultState = {}, config = []) {
+  const reducer = (state = defaultState, action) => {
+    const handlers = config
+      .filter(([type]) => type === action.type)
+      .map(([type, handler]) => handler);
+    return handlers.reduce((prevState, handler) => {
+      const changes = handler(state, ...action.payload);
+      return {
+        ...prevState,
+        ...(typeof changes === 'object' ? changes : {}),
+      };
+    }, { ...state });
   };
-  wrapper.__isReactduxAction;
-  return wrapper;
-}
-
-function getPathValue(obj, paths) {
-  let value;
-  let pointer = obj;
-  try {
-    for (let i = 0; i < paths.length; ++i) {
-      pointer = pointer[paths[i]];
-      value = pointer;
-    }
-  } catch (e) {}
-  return value;
+  reducer.__isReactduxReducer = true;
+  return reducer;
 }
 
 export function createSelector(...args) {
@@ -94,13 +84,3 @@ export function createSelector(...args) {
   wrapper.__isReactduxSelector = true;
   return wrapper;
 }
-
-export const createSaga = config => store => next => (action) => {
-  next(action);
-  const handlers = config
-    .filter(([type]) => type === action.type)
-    .map(([type, handler]) => handler);
-  if (handlers.length) {
-    handlers.forEach(handler => handler(action.payload));
-  }
-};
