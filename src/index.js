@@ -5,6 +5,10 @@ import { connect, Provider } from 'react-redux';
 
 let masterStore = null;
 
+function isArguments(value) {
+  Object.prototype.toString.call(value) === '[object Arguments]';
+}
+
 function getPathValue(obj, paths) {
   let value;
   let pointer = obj;
@@ -18,12 +22,10 @@ function getPathValue(obj, paths) {
 }
 
 export function createAction(payloadCreator) {
-  const wrapper = (...args) => {
-    const payload = payloadCreator
-      ? [payloadCreator(...args)]
-      : args;
-    masterStore.dispatch({ payload, type: wrapper });
-  };
+  const wrapper = (...args) => masterStore.dispatch({
+    payload: payloadCreator ? payloadCreator(...args) : [...args],
+    type: wrapper,
+  });
   wrapper.__isReactduxAction;
   return wrapper;
 }
@@ -38,9 +40,7 @@ export function createApp(component, reducer = {}, middleware = []) {
 }
 
 export function createContainer(mapToProps, wrappers, component) {
-  const toProps = typeof mapToProps === 'function'
-    ? mapToProps
-    : () => mapToProps;
+  const toProps = typeof mapToProps === 'function' ? mapToProps : () => mapToProps;
   const mapStateToProps = (state, ownProps) => {
     const result = toProps(ownProps, masterStore)
     const copy = { ...result };
@@ -64,7 +64,9 @@ export function createReducer(defaultState = {}, config = []) {
       .filter(([type]) => type === action.type)
       .map(([type, handler]) => handler);
     return handlers.reduce((prevState, handler) => {
-      const changes = handler(state, ...action.payload);
+      const changes = isArguments(action.payload)
+        ? handler(state, ...action.payload)
+        : handler(state, action.payload);
       return {
         ...prevState,
         ...(typeof changes === 'object' ? changes : {}),

@@ -15,12 +15,11 @@ createApp(<App />, reducer, middleware);
 ```
 
 ## Actions
-
 ```js
-const setText = createAction(); // setText('Joe', 'Goodbye World');
+const setText = createAction(text => text);
 ```
 ```js
-const setJoeText = createAction(text => ({ name: 'Joe', text }));
+const setNameAndText = createAction((name, text) => ({ name, text }));
 ```
 
 ## Reducers
