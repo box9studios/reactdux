@@ -23,7 +23,15 @@ function getPathValue(obj, paths) {
 
 export function createAction(payloadCreator) {
   const wrapper = (...args) => masterStore.dispatch({
-    payload: payloadCreator ? payloadCreator(...args) : [...args],
+    payload: (() => {
+      if (payloadCreator) {
+        return payloadCreator(...args);
+      }
+      if (args.length <= 1) {
+        return args[0];
+      }
+      return [...args];
+    })(),
     type: wrapper,
   });
   wrapper.__isReactduxAction;
