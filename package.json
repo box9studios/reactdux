@@ -1,7 +1,7 @@
 {
   "name": "reactdux",
   "description": "A collection of javascript functions to help orchestrate react + redux applications.",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "author": "Steve Binder <email@stevebinder.com>",
   "license": "MIT",
   "main": "dist/index.js",

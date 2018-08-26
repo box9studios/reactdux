@@ -5,49 +5,48 @@ import { connect, Provider } from 'react-redux';
 
 let masterStore = null;
 
-function isArguments(value) {
-  Object.prototype.toString.call(value) === '[object Arguments]';
-}
-
-function getPathValue(obj, paths) {
-  let value;
-  let pointer = obj;
-  try {
-    for (let i = 0; i < paths.length; ++i) {
-      pointer = pointer[paths[i]];
-      value = pointer;
-    }
-  } catch (e) {}
-  return value;
-}
-
-export function createAction(payloadCreator) {
-  const wrapper = (...args) => masterStore.dispatch({
-    payload: (() => {
-      if (payloadCreator) {
-        return payloadCreator(...args);
+export const createAction = (type, payloadCreator) => {
+  const realType = typeof type === 'string' ? type : payloadCreator;
+  const realPayloadCreator = typeof type === 'function' ? type : payloadCreator;
+  const wrapper = (...args) => {
+    const type = (() => {
+      if (realType) {
+        return realType;
       }
-      if (args.length <= 1) {
-        return args[0];
+      if (realPayloadCreator && realPayloadCreator.name) {
+        return realPayloadCreator.name;
       }
-      return [...args];
-    })(),
-    type: wrapper,
-  });
+      return wrapper;
+    })();
+    const action = {
+      payload: (() => {
+        if (realPayloadCreator) {
+          return realPayloadCreator(...args);
+        }
+        if (args.length <= 1) {
+          return args[0];
+        }
+        return [...args];
+      })(),
+      type,
+    };
+    Object.defineProperty(action, '__reactduxIdentity', { value: wrapper });
+    return masterStore.dispatch(action);
+  };
   wrapper.__isReactduxAction;
   return wrapper;
-}
+};
 
-export function createApp(component, reducer = {}, middleware = []) {
+export const createApp = (component, reducer = {}, middleware = []) => {
   const finalReducer = reducer.__isReactduxReducer ? reducer : combineReducers(reducer);
   const finalMiddleware = middleware.length ? applyMiddleware(...middleware) : undefined;
   masterStore = createStore(finalReducer, finalMiddleware);
   const element = document.createElement('div');
   render(createElement(Provider, { store: masterStore }, component ), element);
   document.body.appendChild(element.children[0]);
-}
+};
 
-export function createContainer(mapToProps, wrappers, component) {
+export const createContainer =(mapToProps, wrappers, component) => {
   const toProps = typeof mapToProps === 'function' ? mapToProps : () => mapToProps;
   const mapStateToProps = (state, ownProps) => {
     const result = toProps(ownProps, masterStore)
@@ -64,12 +63,15 @@ export function createContainer(mapToProps, wrappers, component) {
     ...(component ? wrappers : []),
     connect(mapStateToProps, mapDispatchToProps),
   )(component || wrappers);
-}
+};
 
-export function createReducer(defaultState = {}, config = []) {
+const isArguments = value =>
+  Object.prototype.toString.call(value) === '[object Arguments]';
+
+export const createReducer = (defaultState = {}, config = []) => {
   const reducer = (state = defaultState, action) => {
     const handlers = config
-      .filter(([type]) => type === action.type)
+      .filter(([type]) => type === action.type || type === action.__reactduxIdentity)
       .map(([type, handler]) => handler);
     return handlers.reduce((prevState, handler) => {
       const changes = isArguments(action.payload)
@@ -83,9 +85,21 @@ export function createReducer(defaultState = {}, config = []) {
   };
   reducer.__isReactduxReducer = true;
   return reducer;
-}
+};
 
-export function createSelector(...args) {
+const getPathValue = (obj, paths) => {
+  let value;
+  let pointer = obj;
+  try {
+    for (let i = 0; i < paths.length; ++i) {
+      pointer = pointer[paths[i]];
+      value = pointer;
+    }
+  } catch (e) {}
+  return value;
+};
+
+export const createSelector = (...args) => {
   const firstArg = args[0];
   const method = typeof args[0] === 'function'
     ? args[0]
@@ -93,4 +107,4 @@ export function createSelector(...args) {
   const wrapper = (...args2) => method(masterStore.getState(), ...args2);
   wrapper.__isReactduxSelector = true;
   return wrapper;
-}
+};
