@@ -18,20 +18,23 @@ export const createAction = (type, payloadCreator) => {
       }
       return wrapper;
     })();
-    const action = {
-      payload: (() => {
-        if (realPayloadCreator) {
-          return realPayloadCreator(...args);
-        }
-        if (args.length <= 1) {
-          return args[0];
-        }
-        return [...args];
-      })(),
-      type,
+    const initialPayload = (() => {
+      if (realPayloadCreator) {
+        return realPayloadCreator(...args);
+      }
+      if (args.length <= 1) {
+        return args[0];
+      }
+      return [...args];
+    })();
+    const onPayload = payload => {
+      const action = { payload, type };
+      Object.defineProperty(action, '__reactduxIdentity', { value: wrapper });
+      masterStore.dispatch(action);
     };
-    Object.defineProperty(action, '__reactduxIdentity', { value: wrapper });
-    return masterStore.dispatch(action);
+    initialPayload instanceof Promise
+      ? initialPayload.then(onPayload)
+      : onPayload(initialPayload);
   };
   wrapper.__isReactduxAction;
   return wrapper;
