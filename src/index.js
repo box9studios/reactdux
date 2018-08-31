@@ -31,12 +31,15 @@ export const createAction = (type, payloadCreator) => {
       const action = { payload, type };
       Object.defineProperty(action, '__reactduxIdentity', { value: wrapper });
       masterStore.dispatch(action);
+      return action;
     };
-    initialPayload instanceof Promise
-      ? initialPayload.then(onPayload)
-      : onPayload(initialPayload);
+    if (initialPayload instanceof Promise) {
+      initialPayload.then(onPayload);
+    } else {
+      return onPayload(initialPayload);
+    }
   };
-  wrapper.__isReactduxAction;
+  wrapper.__isReactduxAction = true;
   return wrapper;
 };
 
@@ -74,17 +77,32 @@ const isArguments = value =>
 export const createReducer = (defaultState = {}, config = []) => {
   const reducer = (state = defaultState, action) => {
     const handlers = config
-      .filter(([type]) => type === action.type || type === action.__reactduxIdentity)
-      .map(([type, handler]) => handler);
-    return handlers.reduce((prevState, handler) => {
-      const changes = isArguments(action.payload)
-        ? handler(state, ...action.payload)
-        : handler(state, action.payload);
-      return {
-        ...prevState,
-        ...(typeof changes === 'object' ? changes : {}),
-      };
-    }, { ...state });
+      .reduce(
+        (result, args) => {
+          const types = [...args];
+          const handler = types.pop();
+          if (
+            types.find(type =>
+              console.log(type, action.type) || type === action.type || type === action.__reactduxIdentity)
+          ) {
+            return [...result, handler];
+          }
+          return result;
+        },
+        [],
+      );
+    return handlers.reduce(
+      (prevState, handler) => {
+        const changes = isArguments(action.payload)
+          ? handler(state, ...action.payload)
+          : handler(state, action.payload);
+        return {
+          ...prevState,
+          ...(typeof changes === 'object' ? changes : {}),
+        };
+      },
+      { ...state },
+    );
   };
   reducer.__isReactduxReducer = true;
   return reducer;
