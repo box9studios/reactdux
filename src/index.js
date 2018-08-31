@@ -83,7 +83,9 @@ export const createReducer = (defaultState = {}, config = []) => {
           const handler = types.pop();
           if (
             types.find(type =>
-              console.log(type, action.type) || type === action.type || type === action.__reactduxIdentity)
+              type === action.type
+              || type === action.__reactduxIdentity
+            )
           ) {
             return [...result, handler];
           }
