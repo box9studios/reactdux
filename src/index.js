@@ -3,41 +3,37 @@ import { applyMiddleware, combineReducers, compose, createStore } from 'redux';
 import { render } from 'react-dom';
 import { connect, Provider } from 'react-redux';
 
+const emptyPayloadCreator = () => undefined;
 let masterStore = null;
 
-export const createAction = (type, payloadCreator) => {
-  const realType = typeof type === 'string' ? type : payloadCreator;
-  const realPayloadCreator = typeof type === 'function' ? type : payloadCreator;
-  const wrapper = (...args) => {
+export const createAction = (...args1) => {
+  const firstArgIsString = typeof args1[0] === 'string';
+  const initialType = firstArgIsString ? args1[0] : undefined;
+  const payloadCreator = args1[firstArgIsString ? 1 : 0] || emptyPayloadCreator;
+  const effects = args1.slice(firstArgIsString ? 2 : 1, args1.length);
+  const wrapper = (...args2) => {
     const type = (() => {
-      if (realType) {
-        return realType;
+      if (initialType) {
+        return initialType;
       }
-      if (realPayloadCreator && realPayloadCreator.name) {
-        return realPayloadCreator.name;
+      if (payloadCreator && payloadCreator.name) {
+        return payloadCreator.name;
       }
       return wrapper;
     })();
-    const initialPayload = (() => {
-      if (realPayloadCreator) {
-        return realPayloadCreator(...args);
-      }
-      if (args.length <= 1) {
-        return args[0];
-      }
-      return [...args];
-    })();
-    const onPayload = payload => {
-      const action = { payload, type };
-      Object.defineProperty(action, '__reactduxIdentity', { value: wrapper });
-      masterStore.dispatch(action);
-      return action;
-    };
-    if (initialPayload instanceof Promise) {
-      initialPayload.then(onPayload);
-    } else {
-      return onPayload(initialPayload);
+    const payload = payloadCreator(...args2);
+    const error = payload ? payload.error : undefined;
+    const action = { error, payload, type };
+    Object.defineProperty(
+      action,
+      '__reactduxIdentity',
+      { value: wrapper },
+    );
+    masterStore.dispatch(action);
+    if (effects.length) {
+      effects.forEach(effect => setTimeout(() => effect(...args2)));
     }
+    return action;
   };
   wrapper.__isReactduxAction = true;
   return wrapper;
@@ -84,7 +80,7 @@ export const createReducer = (defaultState = {}, config = []) => {
           if (
             types.find(type =>
               type === action.type
-              || type === action.__reactduxIdentity
+              || (type && type === action.__reactduxIdentity)
             )
           ) {
             return [...result, handler];
