@@ -3,7 +3,7 @@ import { applyMiddleware, combineReducers, compose, createStore } from 'redux';
 import { render } from 'react-dom';
 import { connect, Provider } from 'react-redux';
 
-const emptyPayloadCreator = () => undefined;
+const emptyPayloadCreator = function() { return arguments; };
 let masterStore = null;
 
 export const createAction = (...args1) => {
