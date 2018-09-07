@@ -43,9 +43,16 @@ export const createApp = (component, reducer = {}, middleware = []) => {
   const finalReducer = reducer.__isReactduxReducer ? reducer : combineReducers(reducer);
   const finalMiddleware = middleware.length ? applyMiddleware(...middleware) : undefined;
   masterStore = createStore(finalReducer, finalMiddleware);
-  const element = document.createElement('div');
-  render(createElement(Provider, { store: masterStore }, component ), element);
-  document.body.appendChild(element.children[0]);
+  const element = createElement(
+    Provider,
+    { store: masterStore },
+    component,
+  );
+  const container = document.createElement('div');
+  render(element, container);
+  const fragment = document.createDocumentFragment();
+  Array.from(container.children).forEach(child => fragment.appendChild(child));
+  document.body.appendChild(fragment);
 };
 
 export const createContainer =(mapToProps, wrappers, component) => {
