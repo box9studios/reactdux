@@ -49,10 +49,9 @@ export const createApp = (component, reducer = {}, middleware = []) => {
     component,
   );
   const container = document.createElement('div');
+  container.style.height = '100%';
   render(element, container);
-  const fragment = document.createDocumentFragment();
-  Array.from(container.children).forEach(child => fragment.appendChild(child));
-  document.body.appendChild(fragment);
+  document.body.appendChild(container);
 };
 
 export const createContainer =(mapToProps, wrappers, component) => {
