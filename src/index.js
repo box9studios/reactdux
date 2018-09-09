@@ -4,6 +4,8 @@ import { render } from 'react-dom';
 import { connect, Provider } from 'react-redux';
 
 const emptyPayloadCreator = function() { return arguments; };
+const isPromise = value => value instanceof Promise;
+
 let masterStore = null;
 
 export const createAction = (...args1) => {
@@ -21,19 +23,26 @@ export const createAction = (...args1) => {
       }
       return wrapper;
     })();
-    const payload = payloadCreator(...args2);
-    const error = payload ? payload.error : undefined;
-    const action = { error, payload, type };
-    Object.defineProperty(
-      action,
-      '__reactduxIdentity',
-      { value: wrapper },
-    );
-    masterStore.dispatch(action);
-    if (effects.length) {
-      effects.forEach(effect => setTimeout(() => effect(...args2)));
+    const onPayload = payload => {
+      const error = payload ? payload.error : undefined;
+      const action = { error, payload, type };
+      Object.defineProperty(
+        action,
+        '__reactduxIdentity',
+        { value: wrapper },
+      );
+      masterStore.dispatch(action);
+      if (effects.length) {
+        effects.forEach(effect => setTimeout(() => effect(...args2)));
+      }
+      return action;
     }
-    return action;
+    const payloadReturnValue = payloadCreator(...args2);
+    if (isPromise(payloadReturnValue)) {
+      return payloadReturnValue.then(onPayload);
+    } else {
+      return onPayload(payloadReturnValue);
+    }
   };
   wrapper.__isReactduxAction = true;
   return wrapper;
