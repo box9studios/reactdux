@@ -1,5 +1,5 @@
 # Reactdux
-Orchestrate your React/Redux apps with this simple library.
+Orchestrate your React/Redux apps with this simple library.    
 ```npm install reactdux```
 
 
