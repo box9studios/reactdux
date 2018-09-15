@@ -1,111 +1,80 @@
 # Reactdux
+Orchestrate your React/Redux apps with this simple library. ```npm install reactdux```
 
-A collection of javascript functions to help orchestrate react + redux applications.
+---
 
-```
-npm install reactdux
-```
-
-
-
-## Apps
-
+## Setup
 ```js
+import { createApp } from 'reactdux';
+import App from './components/App'; // root component
+import reducer from './reducer'; // see below
+
+const middleware = []; // no middleware yet...
+
 createApp(<App />, reducer, middleware);
 ```
 
 ## Actions
 ```js
-const setText = createAction(text => text);
-```
-```js
-const setNameAndText = createAction((name, text) => ({ name, text }));
+import { createAction } from 'reactdux';
+
+export const toggleStatus = createAction('TOGGLE_STATUS'); // no payload
+export const setAge = createAction('SET_AGE', age => ({ age })); // arguments translated to pretty payload
 ```
 
 ## Reducers
-
 ```js
-createReducer(
-  {
-    name: 'Joe',
-    text: 'Hello World',
-  },
-  [
-    [
-      setText,
-      (name, text) => ({ name, text }),
-    ]
-    [
-      setJoeText,
-      ({ name, text }) => ({
-        name,
-        text,
-      }),
-    ],
+import { createContainer } from 'reactdux';
+import { setAge } from './actions';
+
+const defaultState = {
+  name: 'Joe',
+  age: 25,
+  friends: [
+    { name: 'Paul', age: 20 },
+    { name: 'Randy', age: 34 },
   ],
+};
+
+export default createReducer(defaultState, [
+  [
+    setAge,
+    payload => ({ age: payload.age }),
+  ],
+]);
+```
+
+## Selectors
+```js
+import { createSelector } from 'reactdux';
+
+const selectText = createSelector('age'); // get state.age
+const selectText = createSelector((state, name) =>
+  state.friends.find(friend => friend.name === name));
+const selectText = createSelector(
+  (state) => state.friends, // provides first argument below
+  (state, name) => name, // provides second argument below
+  // last method is only run when any previous result changes (memoization!)
+  (friends, name) => friends.find(friend => friend.name === name)).age,
 );
 ```
 
 ## Containers
+```js
+import { createContainer } from 'reactdux';
+import { withTheme } from './withTheme'; // HOC - Higher order component
+import { setAge } from './actions';
+import { selectAge } from './selectors';
 
-```js
-createContainer(
-  { data: selectData },
-  ({ data }) => <div>{data}</div>,
-);
+export default createContainer(
+  withTheme, // HOC
+  // ...more HOCs here
+  props => ({
+    age: selectAge(), // no need to pass in state!
+    onEndOfYear: () => setAge(26), // no need to dispatch!
+  }),
+  Component,
+ );
 ```
-```js
-creatContainer(
-  { data: selectData('a', 'b') },
-  ({ data }) => <div>{data}</div>,
-);
-```
-```js
-createContainer(
-  (props, state) => ({
-   name: props.history.location.query.name,
-   age: state.age,
-   job: selectJob('joe'),
-   height: selectHeight,
-  }).
-  class extends React.Component {
-    render() {
-      return <div>{this.props.name}</div>;
-    }
-  },
-);
-```
-```js
-createContainer(
-  { data: selectData },
-  [
-    withRouter,
-    withTranslation,
-  ],
-  () => <div>Wow</div>,
-);
-```
-
-## Selectors
-
-1. Path Selector
-```js
-const selectText = createSelector('todos');
-```
-
-2. Simple Selector
-```js
-const selectText = createSelector((state, id) => state.todos[id]);
-```
-
-3. Memoized Selector
-```js
-const selectText = createSelector(
-  (state, id) => state.todos,
-  (state, id) => id,
-  (todos, id) => todos[id],
-);
-```
-
 
 *Made with [mrkdown.io](http://mrkdown.io)*
