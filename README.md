@@ -1,7 +1,6 @@
 # Reactdux
 Orchestrate your React/Redux apps with this simple library. ```npm install reactdux```
 
----
 
 ## Setup
 ```js
@@ -76,5 +75,6 @@ export default createContainer(
   Component,
  );
 ```
+
 
 *Made with [mrkdown.io](http://mrkdown.io)*
