@@ -88,19 +88,24 @@ createContainer(
 
 ## Selectors
 
+1. Path Selector
 ```js
-const selectText = createSelector('key');
-```
-```js
-const selectText = createSelector('path', 'to', 'key');
-```
-```js
-const selectText = createSelector(state => state.text);
-```
-```js
-const selectText = createSelector((state, id) => state.data[id]);
+const selectText = createSelector('todos');
 ```
 
+2. Simple Selector
+```js
+const selectText = createSelector((state, id) => state.todos[id]);
+```
+
+3. Memoized Selector
+```js
+const selectText = createSelector(
+  (state, id) => state.todos,
+  (state, id) => id,
+  (todos, id) => todos[id],
+);
+```
 
 
 *Made with [mrkdown.io](http://mrkdown.io)*
