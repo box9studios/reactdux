@@ -30,9 +30,9 @@ const makeMethod = (...args) => {
   };
 };
 
-export default (...args) => {
+export default function createSelector(...args) {
   const method = makeMethod(...args);
   const selector = (...args2) => method(getState(), ...args2);
   selector.__isReactduxSelector = true;
   return selector;
-};
+}

@@ -1,18 +1,21 @@
 let store = null;
 
-export const dispatch = action => {
+export function dispatch(action) {
   if (!store) {
     throw new Error('no store found');
   }
   store.dispatch(action);
-};
+}
 
-export const isArguments = value =>
-  Object.prototype.toString.call(value) === '[object Arguments]';
+export function isArguments(value) {
+  return Object.prototype.toString.call(value) === '[object Arguments]';
+}
 
-export const isPromise = value => value instanceof Promise;
+export function isPromise(value) {
+  return value instanceof Promise;
+}
 
-export const isEqual = (a, b) => {
+export function isEqual(a, b) {
   if (a.length !== b.length) {
     return false;
   }
@@ -22,18 +25,22 @@ export const isEqual = (a, b) => {
     }
   }
   return true;
-};
+}
 
-export const getState = () => {
+export function getState() {
   if (!store) {
     throw new Error('no store found');
   }
   return store.getState();
-};
+}
 
-export const setStore = nextStore => {
+export function getStore() {
+  return store;
+}
+
+export function setStore(nextStore) {
   if (store) {
     throw new Error('store already created');
   }
   store = nextStore;
-};
+}

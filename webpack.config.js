@@ -5,14 +5,15 @@ module.exports = {
   module: {
     rules: [
       {
-        use: 'babel-loader',
+        exclude: /node_modules/,
         test: /\.js$/,
-        exclude: /node_modules/
+        use: 'babel-loader',
       },
     ],
   },
   output: {
+    filename: 'reactdux.js',
+    libraryTarget: 'commonjs2',
     path: path.resolve(__dirname, 'dist'),
-    filename: 'index.js',
   },
 };

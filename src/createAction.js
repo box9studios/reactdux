@@ -2,7 +2,7 @@ import { dispatch, isPromise } from './utils';
 
 const emptyPayloadCreator = function() { return arguments; };
 
-export default (...args1) => {
+export default function createAction(...args1) {
   const firstArgIsString = typeof args1[0] === 'string';
   const initialType = firstArgIsString ? args1[0] : undefined;
   const payloadCreator = args1[firstArgIsString ? 1 : 0] || emptyPayloadCreator;
@@ -40,4 +40,4 @@ export default (...args1) => {
   };
   wrapper.__isReactduxAction = true;
   return wrapper;
-};
+}

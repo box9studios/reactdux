@@ -1,4 +1,6 @@
-export default (defaultState = {}, config = []) => {
+import { isArguments } from './utils';
+
+export default function (defaultState = {}, config = []) {
   const reducer = (state = defaultState, action) => {
     const handlers = config
       .reduce(
@@ -32,4 +34,4 @@ export default (defaultState = {}, config = []) => {
   };
   reducer.__isReactduxReducer = true;
   return reducer;
-};
+}

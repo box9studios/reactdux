@@ -1,12 +1,13 @@
 import { connect } from 'react-redux';
 import { compose } from 'redux';
+import { getStore } from './utils';
 
-export default (mapToProps, wrappers, component) => {
+export default function createContainer(mapToProps, wrappers, component) {
   const toProps = typeof mapToProps === 'function'
     ? mapToProps
     : () => mapToProps;
   const mapStateToProps = (state, ownProps) => {
-    const result = toProps(ownProps, masterStore)
+    const result = toProps(ownProps, getStore())
     const copy = { ...result };
     for (const i in copy) {
       if (
@@ -23,4 +24,4 @@ export default (mapToProps, wrappers, component) => {
     ...(component ? wrappers : []),
     connect(mapStateToProps, mapDispatchToProps),
   )(component || wrappers);
-};
+}

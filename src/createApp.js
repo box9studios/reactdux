@@ -4,11 +4,11 @@ import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 import { setStore } from './utils';
 
-export default (
+export default function createApp(
   component,
   reducer = {},
   middleware = [],
-) => {
+) {
   const finalReducer = reducer.__isReactduxReducer
     ? reducer
     : combineReducers(reducer);
@@ -22,4 +22,4 @@ export default (
   container.style.height = '100%';
   render(element, container);
   document.body.appendChild(container);
-};
+}
