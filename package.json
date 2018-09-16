@@ -33,5 +33,5 @@
     "build": "rm -rf dist && mkdir dist && NODE_ENV=production webpack -p",
     "release": "git checkout master && git pull origin master && npm publish"
   },
-  "version": "0.12.0"
+  "version": "0.12.1"
 }
