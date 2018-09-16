@@ -34,10 +34,6 @@ export function getState() {
   return store.getState();
 }
 
-export function getStore() {
-  return store;
-}
-
 export function setStore(nextStore) {
   if (store) {
     throw new Error('store already created');

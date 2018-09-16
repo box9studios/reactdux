@@ -1,6 +1,6 @@
 # Reactdux
-Orchestrate your React/Redux apps with this simple library.    
-     
+Orchestrate your React/Redux apps with this simple library.
+
 ```npm install reactdux```
 
 
@@ -67,13 +67,15 @@ import { withTheme } from './withTheme'; // HOC - Higher order component
 import { setAge } from './actions';
 import { selectAge } from './selectors';
 
+const mapProps = props => ({
+  age: selectAge(), // no need to pass in state!
+  onEndOfYear: () => setAge(26), // no need to dispatch!
+}),
+
 export default createContainer(
   withTheme, // HOC
-  // ...more HOCs here
-  props => ({
-    age: selectAge(), // no need to pass in state!
-    onEndOfYear: () => setAge(26), // no need to dispatch!
-  }),
+  /* ...more HOCs here */
+  mapProps,
   Component,
  );
 ```
