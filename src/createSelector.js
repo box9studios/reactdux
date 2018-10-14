@@ -12,21 +12,21 @@ const makeMethod = (...args) => {
   let lastCalculation;
   let lastCalculators = [];
   return (...args2) => {
-    lastCalculators = args.reduce(
-      (calculators, arg, index) => {
-        if (index === args.length - 1) {
-          if (!isEqual(calculators, lastCalculators)) {
-            const method = getMethod(arg);
-            lastCalulation = method(...calculators);
-          }
-          return lastCalculation;
-        }
-        const method = getMethod(arg);
-        const calculator = method(...args2);
-        calculators.push(calculator);
-      },
-      [],
-    );
+    const nextCalculators = args
+      .slice(0, args.length - 1)
+      .reduce(
+        (calculators, arg, index) => ([
+          ...calculators,
+          getMethod(arg)(...args2),
+        ]),
+        [],
+      );
+    if (isEqual(nextCalculators, lastCalculators)) {
+      return lastCalculation;
+    }
+    const nextCalculation = args[args.length - 1](...nextCalculators);
+    lastCalculation = nextCalculation;
+    return nextCalculation;
   };
 };
 

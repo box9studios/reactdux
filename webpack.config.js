@@ -1,7 +1,10 @@
 const path = require('path');
 
+const ENVIRONMENT = process.env.NODE_ENV || 'development';
+
 module.exports = {
   entry: './src/index.js',
+  mode: ENVIRONMENT,
   module: {
     rules: [
       {
