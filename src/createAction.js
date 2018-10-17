@@ -27,7 +27,7 @@ export default function createAction(...args1) {
       );
       dispatch(action);
       if (effects.length) {
-        effects.forEach(effect => setTimeout(() => effect(...args2)));
+        effects.forEach(effect => setTimeout(() => effect(payload)));
       }
       return action;
     }
