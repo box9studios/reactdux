@@ -30,9 +30,9 @@
     "url": "https://github.com/stevebinder/reactdux"
   },
   "scripts": {
-    "build": "rm -rf dist && mkdir dist && NODE_ENV=production webpack",
+    "build": "rm -rf dist && mkdir dist && NODE_ENV=production webpack --display=errors-only && echo 'BUILT!'",
     "build:dev": "rm -rf dist && mkdir dist && NODE_ENV=development webpack",
-    "release": "git checkout master && git pull origin master && npm run build && npm publish"
+    "release": "git checkout master && git pull origin master && npm run build && npm publish && 'RELEASED!'"
   },
   "version": "0.14.0"
 }
