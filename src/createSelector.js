@@ -1,13 +1,40 @@
-import { getState, isEqual } from './utils';
+import {
+  getState,
+  isArray,
+  isEqual,
+  isFunction,
+  isString,
+} from './utils';
 
-const getMethod = value =>
-  typeof value === 'function'
-    ? value
-    : state => state[value];
+const getMethod = arg => {
+  if (isFunction(arg)) {
+    return arg;
+  }
+  const keys = (() => {
+    if (isString(arg)) {
+      return arg.split('.');
+    }
+    if (isArray(arg)) {
+      return arg;
+    }
+    return [];
+  })()
+  return state => {
+    let pointer = state;
+    for (let i = 0; i < keys.length; i += 1) {
+      try {
+        pointer = pointer[keys[i]];
+      } catch(error) {
+        return undefined;
+      }
+    }
+    return pointer;
+  };
+}
 
 const makeMethod = (...args) => {
   if (args.length <= 1) {
-    return getMethod(...args);
+    return getMethod(args[0]);
   }
   let lastCalculation;
   let lastCalculators = [];

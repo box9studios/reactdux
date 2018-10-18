@@ -31,7 +31,8 @@
   },
   "scripts": {
     "build": "rm -rf dist && mkdir dist && NODE_ENV=production webpack",
+    "build:dev": "rm -rf dist && mkdir dist && NODE_ENV=development webpack",
     "release": "git checkout master && git pull origin master && npm run build && npm publish"
   },
-  "version": "0.13.0"
+  "version": "0.14.0"
 }

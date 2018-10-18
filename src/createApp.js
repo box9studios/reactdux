@@ -9,13 +9,10 @@ export default function createApp(
   reducer = {},
   middleware = [],
 ) {
-  const finalReducer = reducer.__isReactduxReducer
-    ? reducer
-    : combineReducers(reducer);
   const finalMiddleware = middleware.length
     ? applyMiddleware(...middleware)
     : undefined;
-  const store = createStore(finalReducer, finalMiddleware);
+  const store = createStore(reducer, finalMiddleware);
   setStore(store);
   const element = createElement(Provider, { store }, component);
   const container = document.createElement('div');

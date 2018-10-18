@@ -7,12 +7,12 @@ export function dispatch(action) {
   store.dispatch(action);
 }
 
-export function isArguments(value) {
-  return Object.prototype.toString.call(value) === '[object Arguments]';
+export function isArray(value) {
+  return value instanceof Array;
 }
 
-export function isPromise(value) {
-  return value instanceof Promise;
+export function isArguments(value) {
+  return Object.prototype.toString.call(value) === '[object Arguments]';
 }
 
 export function isEqual(a, b) {
@@ -25,6 +25,18 @@ export function isEqual(a, b) {
     }
   }
   return true;
+}
+
+export function isFunction(value) {
+  return typeof value === 'function';
+}
+
+export function isPromise(value) {
+  return value instanceof Promise;
+}
+
+export function isString(value) {
+  return typeof value === 'string';
 }
 
 export function getState() {

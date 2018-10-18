@@ -25,7 +25,7 @@ export const setAge = createAction('SET_AGE', age => ({ age })); // arguments tr
 
 ## Reducers
 ```js
-import { createContainer } from 'reactdux';
+import { createReducer } from 'reactdux';
 import { setAge } from './actions';
 
 const defaultState = {
@@ -45,13 +45,40 @@ export default createReducer(defaultState, [
 ]);
 ```
 
+## Nested/Combined Reducers
+```js
+import { createReducer } from 'reactdux';
+
+const user = createReducer(
+  {
+    name: 'Joe',
+    age: '31',
+  },
+  [
+    setAge,
+    (state, payload) => state.age = payload.age,
+  ],
+);
+
+const heartbeats = createReducer(
+  [],
+  [
+    addHeartbeat,
+    state => [...state, 'thump'],
+  ],
+);
+
+export default createReducer({ user, heartbeats });
+```
+
 ## Selectors
 ```js
 import { createSelector } from 'reactdux';
 
 const selectText = createSelector('age'); // get state.age
-const selectText = createSelector((state, name) =>
-  state.friends.find(friend => friend.name === name));
+const selectUserName = createSelector('user.name'); // get state.user.age
+const selectUserAge = createSelector(['user', 'age']); // get state.user.age
+const selectUserText = createSelector((state, userId) => state.users[userId]);
 const selectText = createSelector(
   (state) => state.friends, // provides first argument below
   (state, name) => name, // provides second argument below
