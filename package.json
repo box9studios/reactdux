@@ -1,19 +1,19 @@
 {
   "author": "Steve Binder <email@stevebinder.com>",
   "dependencies": {
-    "react": "latest",
-    "react-dom": "latest",
-    "react-redux": "latest",
-    "redux": "latest"
+    "react": "^16.5.2",
+    "react-dom": "^16.5.2",
+    "react-redux": "^5.0.7",
+    "redux": "^4.0.1"
   },
   "description": "Orchestrate your React/Redux apps with this simple library.",
   "devDependencies": {
-    "@babel/core": "^7.0.1",
-    "@babel/preset-env": "^7.0.0",
+    "@babel/core": "^7.1.2",
+    "@babel/preset-env": "^7.1.0",
     "@babel/preset-react": "^7.0.0",
-    "babel-loader": "^8.0.2",
-    "webpack": "^4.19.0",
-    "webpack-cli": "^3.1.0"
+    "babel-loader": "^8.0.4",
+    "webpack": "^4.22.0",
+    "webpack-cli": "^3.1.2"
   },
   "engines": {
     "node": "10.6.0",
@@ -32,7 +32,7 @@
   "scripts": {
     "build": "rm -rf dist && mkdir dist && NODE_ENV=production webpack --display=errors-only && echo 'BUILT!'",
     "build:dev": "rm -rf dist && mkdir dist && NODE_ENV=development webpack",
-    "release": "git checkout master && git pull origin master && npm run build && npm publish && 'RELEASED!'"
+    "release": "git checkout master && git pull origin master && git push origin master && npm run build && npm publish && 'RELEASED!'"
   },
-  "version": "0.14.0"
+  "version": "0.15.0"
 }
