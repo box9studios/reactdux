@@ -32,7 +32,7 @@
   "scripts": {
     "build": "rm -rf dist && mkdir dist && NODE_ENV=production webpack --display=errors-only && echo 'BUILT!'",
     "build:dev": "rm -rf dist && mkdir dist && NODE_ENV=development webpack",
-    "release": "git checkout master && git pull origin master && git push origin master && npm run build && npm publish && 'RELEASED!'"
+    "release": "git checkout master && git pull origin master && git push origin master && npm run build && npm publish && echo 'RELEASED!'"
   },
   "version": "0.15.0"
 }
