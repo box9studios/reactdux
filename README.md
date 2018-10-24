@@ -1,34 +1,38 @@
 # Reactdux
-Orchestrate your React/Redux apps with this simple library.
+Simplify your React+Redux setup.
+
+## Install
 
 ```npm install reactdux```
 
 
 ## Setup
+
 ```js
 import { createApp } from 'reactdux';
-import App from './components/App'; // root component
-import reducer from './reducer'; // see below
+import reducer from './reducer';
+import middlewares from './middlewares';
+import Component from './component';
 
-const middleware = []; // no middleware yet...
-
-createApp(<App />, reducer, middleware);
+createApp(<Component />, reducer, middleware);
 ```
 
 ## Actions
+
 ```js
 import { createAction } from 'reactdux';
 
-export const toggleStatus = createAction('TOGGLE_STATUS'); // no payload
-export const setAge = createAction('SET_AGE', age => ({ age })); // arguments translated to pretty payload
+export const incAge = createAction('INC_AGE');
+export const setAge = createAction('SET_AGE', age => ({ age }));
 ```
 
 ## Reducers
+
 ```js
 import { createReducer } from 'reactdux';
 import { setAge } from './actions';
 
-const defaultState = {
+const initialState = {
   name: 'Joe',
   age: 25,
   friends: [
@@ -37,7 +41,7 @@ const defaultState = {
   ],
 };
 
-export default createReducer(defaultState, [
+export default createReducer(initialState, [
   [
     setAge,
     payload => ({ age: payload.age }),
@@ -45,44 +49,17 @@ export default createReducer(defaultState, [
 ]);
 ```
 
-## Nested/Combined Reducers
-```js
-import { createReducer } from 'reactdux';
-
-const user = createReducer(
-  {
-    name: 'Joe',
-    age: '31',
-  },
-  [
-    setAge,
-    (state, payload) => state.age = payload.age,
-  ],
-);
-
-const heartbeats = createReducer(
-  [],
-  [
-    addHeartbeat,
-    state => [...state, 'thump'],
-  ],
-);
-
-export default createReducer({ user, heartbeats });
-```
-
 ## Selectors
 ```js
 import { createSelector } from 'reactdux';
 
-const selectText = createSelector('age'); // get state.age
-const selectUserName = createSelector('user.name'); // get state.user.age
-const selectUserAge = createSelector(['user', 'age']); // get state.user.age
+const selectText = createSelector('age');
+const selectUserName = createSelector('user.name');
+const selectUserAge = createSelector(['user', 'age']);
 const selectUserText = createSelector((state, userId) => state.users[userId]);
 const selectText = createSelector(
-  (state) => state.friends, // provides first argument below
-  (state, name) => name, // provides second argument below
-  // last method is only run when any previous result changes (memoization!)
+  (state) => state.friends,
+  (state, name) => name,
   (friends, name) => friends.find(friend => friend.name === name)).age,
 );
 ```
@@ -92,17 +69,15 @@ const selectText = createSelector(
 import { createContainer } from 'reactdux';
 import withAge from './withAge';
 import { setAge } from './actions';
-import { selectAge } from './selectors';
-
-const mapProps = props => ({
-  age: selectAge(), // no need to pass in state!
-  onEndOfYear: () => setAge(26), // no need to dispatch!
-}),
+import { selectAge, selectName } from './selectors';
 
 export default createContainer(
   withAge,
-  props => ({ isRetired: props.age >= 65 }),
-  /* more HOCs or mapProps functions */
+  props => ({
+    isRetired: props.age >= 65,
+    name: selectName(),
+  }),
+  { setAge },
   Component,
 );
 ```

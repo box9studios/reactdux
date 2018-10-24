@@ -6,7 +6,7 @@
     "react-redux": "^5.0.7",
     "redux": "^4.0.1"
   },
-  "description": "Orchestrate your React/Redux apps with this simple library.",
+  "description": "Simplify your React+Redux setup.",
   "devDependencies": {
     "@babel/core": "^7.1.2",
     "@babel/preset-env": "^7.1.0",
@@ -22,6 +22,20 @@
   "files": [
     "dist"
   ],
+  "keywords": [
+    "connect",
+    "createAction",
+    "createApp",
+    "createContainer",
+    "createReducer",
+    "createSelector",
+    "react",
+    "react-redux",
+    "redux",
+    "redux-actions",
+    "simple",
+    "simplify"
+  ],
   "license": "MIT",
   "main": "dist/reactdux.js",
   "name": "reactdux",
@@ -34,5 +48,5 @@
     "build:dev": "rm -rf dist && mkdir dist && NODE_ENV=development webpack",
     "release": "git checkout master && git pull origin master && git push origin master && npm run build && npm publish && echo 'RELEASED!'"
   },
-  "version": "0.16.0"
+  "version": "0.16.1"
 }
