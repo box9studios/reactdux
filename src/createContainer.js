@@ -1,50 +1,50 @@
-import { connect } from 'react-redux';
+import { connect as reactReduxConnect } from 'react-redux';
 import { compose } from 'redux';
-import { isArray } from './utils';
+import { getState, isFunction } from './utils';
 
-const defaultObj = {};
-const defaultMapper = () => defaultObj;
+const connect = mapper =>
+  reactReduxConnect((state, props) => mapper(props, state));
 
-const createMapper = (value, comp) => {
-  if (!value) {
-    return defaultMapper;
-  }
-  const mapper = typeof value === 'function'
-    ? value
-    : () => value;
-  return connect(
-    (state, props) => {
-      const mapped = mapper(props, state, comp) || defaultObj;
-      const copy = { ...mapped };
-      for (const key in copy) {
-        if (
-          typeof copy[key] === 'function'
-          && copy[key].__isReactduxSelector
-        ) {
-          copy[key] = copy[key]();
-        }
+const convert = obj => Object.entries(obj).reduce(
+  (result, [key, value]) => {
+    if (value && value.__isReactduxSelector) {
+      try {
+        return { ...result, [key]: value() };
+      } catch(e2) {}
+    }
+    return { ...result, [key]: value };
+  },
+  {},
+);
+
+const create = value => {
+  if (isFunction(value)) {
+    try {
+      const result = value();
+      if (isFunction(result)) {
+        return value;
       }
-      return copy;
-    },
-    defaultMapper,
-  );
+    } catch (e) {}
+    return connect((...args) => convert(value(...args)));
+  }
+  return connect(() => convert(value));
+};
+
+const extend = (props, mapper) => {
+  const overrides = (() => {
+    try {
+      return mapper(props, getState());
+    } catch (e) {
+      return {};
+    }
+  })();
+  return { ...props, ...overrides };
 };
 
 export default function createContainer(...args) {
   const component = args[args.length - 1];
-  const mappers = [];
-  const hocs = [];
-  args
+  const hocs = args
     .slice(0, args.length - 1)
-    .forEach(arg => {
-      if (isArray(arg)) {
-        arg.forEach(a => hocs.push(a));
-      } else {
-        mappers.push(arg);
-      }
-    });
-  return compose(
-    ...mappers.map(mapper => createMapper(mapper, component)),
-    ...hocs,
-  )(component);
+    .map(create);
+  return compose(...hocs)(component);
 }

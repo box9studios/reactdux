@@ -90,7 +90,7 @@ const selectText = createSelector(
 ## Containers
 ```js
 import { createContainer } from 'reactdux';
-import { withTheme } from './withTheme'; // HOC - Higher order component
+import withAge from './withAge';
 import { setAge } from './actions';
 import { selectAge } from './selectors';
 
@@ -100,11 +100,11 @@ const mapProps = props => ({
 }),
 
 export default createContainer(
-  withTheme, // HOC
-  /* ...more HOCs here */
-  mapProps,
+  withAge,
+  props => ({ isRetired: props.age >= 65 }),
+  /* more HOCs or mapProps functions */
   Component,
- );
+);
 ```
 
 
