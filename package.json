@@ -1,9 +1,11 @@
 {
   "author": "Steve Binder <email@stevebinder.com>",
   "dependencies": {
+    "classnames": "^2.2.6",
     "emotion": "^9.2.12",
     "react": "^16.5.2",
     "react-dom": "^16.5.2",
+    "react-emotion": "^9.2.12",
     "react-redux": "^5.0.7",
     "redux": "^4.0.1"
   },
@@ -49,5 +51,5 @@
     "build:dev": "rm -rf dist && mkdir dist && NODE_ENV=development webpack",
     "release": "git checkout master && git pull origin master && git push origin master && npm run build && npm publish && echo 'RELEASED!'"
   },
-  "version": "0.17.0"
+  "version": "0.18.0"
 }
