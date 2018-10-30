@@ -82,5 +82,42 @@ export default createContainer(
 );
 ```
 
+## Styles
+```js
+import React from 'react';
+import { createStyle } from 'reactdux';
+
+const style = createStyle({
+  '@keyframes grow': {
+    from: { transform: 'scale(0)' },
+    to: { transform: 'scale(1)' },
+  },
+  button: {
+    background: 'red',
+    borderRadius: '50%',
+    height: '50px',
+    width: '50px',
+  },
+  text: {
+    animation: 'grow 1s linear forwards',
+    color: 'blue',
+  },
+});
+
+export default () => (
+  <div>
+    <p className={style.text}>Hello World!</p>
+    <button
+      className={createStyle(
+        style.button,
+        active && 'active',
+      )}
+    >
+      Push
+    </button>
+  </div>
+);
+```
+
 
 *Made with [mrkdown.io](http://mrkdown.io)*
