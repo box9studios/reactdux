@@ -44,6 +44,13 @@ const replaceAnimations = (input, animations) => Object.entries(input).reduce(
   {},
 );
 
-export default (...args) => typeof args[0] === 'object'
-  ? convertObjectToStyles(args[0])
-  : classnames(...args);
+export default convertStyle = (...args) => {
+  const [arg] = args;
+  if (typeof arg === 'object') {
+    return convertObjectToStyles(arg);
+  }
+  if (typeof arg === 'function') {
+    return convertStyle(arg());
+  }
+  return classnames(...args);
+};
