@@ -44,7 +44,7 @@ const replaceAnimations = (input, animations) => Object.entries(input).reduce(
   {},
 );
 
-export default convertStyle = (...args) => {
+const convertStyle = (...args) => {
   const [arg] = args;
   if (typeof arg === 'object') {
     return convertObjectToStyles(arg);
@@ -54,3 +54,6 @@ export default convertStyle = (...args) => {
   }
   return classnames(...args);
 };
+
+
+export default convertStyle;

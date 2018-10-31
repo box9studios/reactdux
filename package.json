@@ -51,5 +51,5 @@
     "build:dev": "rm -rf dist && mkdir dist && NODE_ENV=development webpack",
     "release": "git checkout master && git pull origin master && git push origin master && npm run build && npm publish && echo 'RELEASED!'"
   },
-  "version": "0.19.0"
+  "version": "0.19.1"
 }
