@@ -1,3 +1,4 @@
+export { default } from 'react';
 export { default as createAction } from './createAction';
 export { default as createApp } from './createApp';
 export { default as createContainer } from './createContainer';
