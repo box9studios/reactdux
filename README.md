@@ -82,6 +82,32 @@ export default createContainer(
 );
 ```
 
+## Components
+```js
+import { createComponent } from 'reactdux';
+
+export default createComponent({
+  props: { name: 'Joe' },
+  state: { count: 0 },
+  onMount() {
+    console.log(`My name is ${this.props.name}`);
+  },
+  onUnmount() {
+    console.log('Unmounting');
+  },
+  onButtonClick() {
+    this.setState({ count: Math.min(this.state.count + 1, 3) });
+  },
+  render() {
+    return (
+      <button onClick={this.onButtonClick}>
+        count is {this.state.count}
+      </button>
+    );
+  },
+});
+```
+
 ## Styles
 ```js
 import React from 'react';
