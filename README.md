@@ -9,7 +9,7 @@ Simplify your React+Redux setup.
 ## Setup
 
 ```js
-import { createApp } from 'reactdux';
+import React, { createApp } from 'reactdux';
 import reducer from './reducer';
 import middlewares from './middlewares';
 import Component from './component';
@@ -84,7 +84,7 @@ export default createContainer(
 
 ## Components
 ```js
-import { createComponent } from 'reactdux';
+import React, { createComponent } from 'reactdux';
 
 export default createComponent({
   props: { name: 'Joe' },
