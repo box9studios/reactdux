@@ -1,8 +1,6 @@
 # Reactdux
 Simplify your React+Redux setup.
 
-## Install
-
 ```npm install reactdux```
 
 
@@ -32,52 +30,48 @@ export const setAge = createAction('SET_AGE', age => ({ age }));
 import { createReducer } from 'reactdux';
 import { setAge } from './actions';
 
-const initialState = {
-  name: 'Joe',
-  age: 25,
-  friends: [
-    { name: 'Paul', age: 20 },
-    { name: 'Randy', age: 34 },
-  ],
-};
-
-export default createReducer(initialState, [
+export default createReducer(
+  { name: 'Joe', age: 25 },
   [
-    setAge,
-    payload => ({ age: payload.age }),
+    [
+      setAge,
+      payload => ({ age: payload.age }),
+    ],
   ],
-]);
+);
 ```
 
 ## Selectors
 ```js
 import { createSelector } from 'reactdux';
 
-const selectText = createSelector('age');
-const selectUserName = createSelector('user.name');
-const selectUserAge = createSelector(['user', 'age']);
-const selectUserText = createSelector((state, userId) => state.users[userId]);
-const selectText = createSelector(
+const selectAge = createSelector('age');
+const selectName = createSelector(state => state.name);
+const selectFriends = createSelector(
   (state) => state.friends,
-  (state, name) => name,
-  (friends, name) => friends.find(friend => friend.name === name)).age,
+  (state, age) => age,
+  (friends, name) =>
+    friends
+      .filter(friend => friend.age >= age)
+      .sort((a, b) => b.age - a.age),
 );
 ```
 
 ## Containers
 ```js
 import { createContainer } from 'reactdux';
-import withAge from './withAge';
+import { withAge, withName } from './hocs';
 import { setAge } from './actions';
-import { selectAge, selectName } from './selectors';
+import { selectFriends } from './selectors';
 
 export default createContainer(
   withAge,
+  withName,
   props => ({
-    isRetired: props.age >= 65,
-    name: selectName(),
+    friends: selectFriends(65),
+    retired: props.age >= 65,
+    setAge,
   }),
-  { setAge },
   Component,
 );
 ```
@@ -86,31 +80,37 @@ export default createContainer(
 ```js
 import React, { createComponent } from 'reactdux';
 
-export default createComponent({
-  props: { name: 'Joe' },
-  state: { count: 0 },
-  onMount() {
-    console.log(`My name is ${this.props.name}`);
+export default createComponent(
+  { name: 'Joe' },
+  { breaths: 0 },
+  {
+    mount() {
+      console.log(`hello ${this.props.name}`);
+    },
+    unmount() {
+      console.log('goodbye');
+    },
+    update() {
+      console.log(`breaths: ${this.state.breaths}`);
+    },
   },
-  onUnmount() {
-    console.log('Unmounting');
-  },
-  onButtonClick() {
-    this.setState({ count: Math.min(this.state.count + 1, 3) });
-  },
-  render() {
-    return (
-      <button onClick={this.onButtonClick}>
-        count is {this.state.count}
-      </button>
-    );
-  },
-});
+  {
+    onButtonClick() {
+      this.setState({ breaths: this.state.breaths + 1 });
+    },
+    render() {
+      return (
+        <button onClick={this.onButtonClick}>
+          breaths: {this.state.count}
+        </button>
+      );
+    },
+  }
+);
 ```
 
 ## Styles
 ```js
-import React from 'react';
 import { createStyle } from 'reactdux';
 
 const style = createStyle({
@@ -144,6 +144,3 @@ export default () => (
   </div>
 );
 ```
-
-
-*Made with [mrkdown.io](http://mrkdown.io)*
