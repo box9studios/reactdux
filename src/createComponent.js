@@ -2,8 +2,28 @@ import { PureComponent } from 'react';
 
 const translateArgs = (...args) => {
   if (args.length === 1) {
+    if (typeof args[0] === 'function') {
+      return { other: args[0] };
+    }
+    const {
+      props: defaultProps,
+      state: defaultState,
+      mount,
+      should,
+      unmount,
+      update,
+      ...other
+    } = args[0];
     return {
-      other: args[0],
+      defaultProps,
+      defaultState,
+      lifecycleHooks: {
+        mount,
+        should,
+        unmount,
+        update,
+      },
+      other,
     };
   }
   if (args.length === 2) {
@@ -54,19 +74,21 @@ export default (...args) => {
         }
         super.setState(changes);
       };
-      Object.entries(lifecycleHooks).forEach(([key, value]) => {
-        switch (key) {
-          case 'mount':
-            this.componentDidMount = value.bind(this);
-            break;
-          case 'should':
-            this.componentShouldUpdate = value.bind(this);
-          case 'unmount':
-            this.componentWillUnmount = value.bind(this);
-          case 'update':
-            this.componentDidUpdate = value.bind(this);
-        }
-      });
+      Object.entries(lifecycleHooks)
+        .filter(([key, value]) => !!value)
+        .forEach(([key, value]) => {
+          switch (key) {
+            case 'mount':
+              this.componentDidMount = value.bind(this);
+              break;
+            case 'should':
+              this.componentShouldUpdate = value.bind(this);
+            case 'unmount':
+              this.componentWillUnmount = value.bind(this);
+            case 'update':
+              this.componentDidUpdate = value.bind(this);
+          }
+        });
       if (typeof other === 'function') {
         this.render = () => other(this.props);
       } else {

@@ -24,6 +24,12 @@ const convertObjectToStyles = value => {
   );
 };
 
+const getFirstValue = obj => {
+  for (let i in obj) {
+    return obj[i];
+  }
+};
+
 const replaceAnimations = (input, animations) => Object.entries(input).reduce(
   (result, [key, value]) => ({
     ...result,
@@ -47,7 +53,10 @@ const replaceAnimations = (input, animations) => Object.entries(input).reduce(
 const convertStyle = (...args) => {
   const [arg] = args;
   if (typeof arg === 'object') {
-    return convertObjectToStyles(arg);
+    if (typeof getFirstValue(arg) === 'object') {
+      return convertObjectToStyles(arg);
+    }
+    return css(arg);
   }
   if (typeof arg === 'function') {
     return convertStyle(arg());
