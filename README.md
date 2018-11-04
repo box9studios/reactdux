@@ -113,16 +113,16 @@ export default createComponent(
 ```js
 import { createStyle } from 'reactdux';
 
-const style = createStyle({
+const classNames = createStyle({
   '@keyframes grow': {
     from: { transform: 'scale(0)' },
     to: { transform: 'scale(1)' },
   },
   button: {
-    background: 'red',
-    borderRadius: '50%',
-    height: '50px',
-    width: '50px',
+    background: 'green',
+    '&.active': {
+      background: 'blue',
+    },
   },
   text: {
     animation: 'grow 1s linear forwards',
@@ -130,17 +130,23 @@ const style = createStyle({
   },
 });
 
+const resetButtonStyle = createStyle({ background: 'red' });
+
+const Wrapper = createStyle('div', props => ({
+  opacity: props.active ? '1' : '0',
+}));
+
 export default () => (
-  <div>
-    <p className={style.text}>Hello World!</p>
+  <Wrapper>
+    <p className={classNames.text}>Hello World!</p>
     <button
       className={createStyle(
-        style.button,
+        classNames.button,
         active && 'active',
       )}
     >
       Push
     </button>
-  </div>
+  </Wrapper>
 );
 ```
