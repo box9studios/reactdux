@@ -1,4 +1,6 @@
 export { default } from 'react';
+export { default as React } from 'react';
+export { Fragment as Fragment } from 'react';
 export { default as createAction } from './createAction';
 export { default as createApp } from './createApp';
 export { default as createContainer } from './createContainer';
