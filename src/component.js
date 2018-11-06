@@ -40,12 +40,15 @@ export default config => {
         if (typeof args[0] === 'string') {
           const [key, setter] = args;
           if (!stateSetters[key]) {
-            const finalSetter = typeof setter === 'function'
-              ? setter
-              : () => setter;
-            stateSetters[key] = (...invokeArgs) => super.setState({
-              [key]: finalSetter(this.state[key], ...invokeArgs),
-            });
+            if (setter === undefined) {
+              stateSetters[key] = value => this.setState({ [key]: value });
+            } else if (typeof setter === 'function') {
+              stateSetters[key] = (...invokeArgs) => super.setState({
+                [key]: setter(this.state[key], ...invokeArgs),
+              });
+            } else {
+              stateSetters[key] = () => this.setState({ [key]: setter });
+            }
           };
           return stateSetters[key];
         }
