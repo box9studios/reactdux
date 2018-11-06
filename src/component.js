@@ -37,9 +37,14 @@ export default config => {
           return;
         }
         if (typeof args[0] === 'string') {
-          const key = args[0];
+          const [key, setter] = args;
           if (!stateSetters[key]) {
-            stateSetters[key] = value => super.setState({ [key]: value });
+            const finalSetter = typeof setter === 'function'
+              ? setter
+              : () => setter;
+            stateSetters[key] = (...invokeArgs) => super.setState({
+              [key]: finalSetter(this.state[key], ...invokeArgs),
+            });
           };
           return stateSetters[key];
         }
