@@ -41,10 +41,10 @@ const extend = (props, mapper) => {
   return { ...props, ...overrides };
 };
 
-export default function createContainer(...args) {
+export default (...args) => {
   const component = args[args.length - 1];
   const hocs = args
     .slice(0, args.length - 1)
     .map(create);
   return compose(...hocs)(component);
-}
+};

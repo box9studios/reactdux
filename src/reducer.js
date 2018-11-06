@@ -1,7 +1,7 @@
 import { isArguments } from './utils';
 import { combineReducers } from 'redux';
 
-export default function createReducer(defaultState = {}, config = []) {
+export default (defaultState = {}, config = []) => {
   if (!config.length) {
     return combineReducers(defaultState);
   }

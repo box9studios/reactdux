@@ -4,11 +4,11 @@ import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 import { setStore } from './utils';
 
-export default function createApp(
+export default (
   component,
   reducer = {},
   middleware = [],
-) {
+) => {
   const finalMiddleware = middleware.length
     ? applyMiddleware(...middleware)
     : undefined;
@@ -19,4 +19,4 @@ export default function createApp(
   container.style.height = '100%';
   render(element, container);
   document.body.appendChild(container);
-}
+};
