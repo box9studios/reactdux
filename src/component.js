@@ -9,7 +9,9 @@ const translateConfig = ({
   ...other
 }) => ({
   defaultProps: props || {},
-  defaultState: typeof state === 'function' ? state : () => state,
+  defaultState: typeof state === 'function'
+    ? state
+    : () => (state || {}),
   lifecycleHooks: {
     init: (lifecycle || {}).init || noop,
     mount: (lifecycle || {}).mount || noop,
@@ -26,11 +28,10 @@ export default config => {
     lifecycleHooks,
     other,
   } = translateConfig(config);
-  return class extends PureComponent {
+  const componentClass = class extends PureComponent {
     constructor(props) {
-      const initialProps = { ...defaultProps, ...props };
-      super(initialProps);
-      this.state = { ...defaultState(initialProps) };
+      super(props);
+      this.state = { ...defaultState(this.props) };
       const stateSetters = {};
       this.setState = (...args) => {
         if (!args.length) {
@@ -83,7 +84,7 @@ export default config => {
         .forEach(([key, value]) => {
           switch (key) {
             case 'init':
-              value(initialProps);
+              value(this.props);
               break;
             case 'mount':
               this.componentDidMount = value.bind(this);
@@ -120,4 +121,6 @@ export default config => {
       }
     }
   };
+  componentClass.defaultProps = defaultProps;
+  return componentClass;
 };
