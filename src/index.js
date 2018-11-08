@@ -1,6 +1,9 @@
 export { default } from 'react';
 export { default as React } from 'react';
 export { Fragment as Fragment } from 'react';
+export { default as element } from 'react';
+export { default as createElement } from 'react';
+
 export { default as action } from './action';
 export { default as createAction } from './action';
 export { default as app } from './app';
@@ -9,8 +12,6 @@ export { default as container } from './container';
 export { default as createContainer } from './container';
 export { default as component } from './component';
 export { default as createComponent } from './component';
-export { default as element } from './element';
-export { default as createElement } from './element';
 export { default as reducer } from './reducer';
 export { default as createReducer } from './reducer';
 export { default as selector } from './selector';
