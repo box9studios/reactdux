@@ -9,6 +9,8 @@ export { default as container } from './container';
 export { default as createContainer } from './container';
 export { default as component } from './component';
 export { default as createComponent } from './component';
+export { default as element } from './element';
+export { default as createElement } from './element';
 export { default as reducer } from './reducer';
 export { default as createReducer } from './reducer';
 export { default as selector } from './selector';
