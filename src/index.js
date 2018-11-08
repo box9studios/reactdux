@@ -1,8 +1,8 @@
 export { default } from 'react';
 export { default as React } from 'react';
 export { Fragment as Fragment } from 'react';
-export { default as element } from 'react';
-export { default as createElement } from 'react';
+export { createElement as element } from 'react';
+export { createElement } from 'react';
 
 export { default as action } from './action';
 export { default as createAction } from './action';
