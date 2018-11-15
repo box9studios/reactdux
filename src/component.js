@@ -141,9 +141,13 @@ export default config => {
           return;
         }
         if (typeof value === 'function') {
-          if (/^render/.test(key)) {
-            this[key] = (...args) => {
-              const result = value.apply(this, args);
+          if (key === 'render') {
+            this[key] = () => {
+              const result = value.call(this, {
+                ...this.props,
+                getState: this.getState.bind(this),
+                setState: this.setState.bind(this),
+              });
               if (result === undefined) {
                 return null;
               }
@@ -151,7 +155,7 @@ export default config => {
             }
             return;
           }
-          this[key] = (...args) => value.apply(this, args);
+          this[key] = (...args) => value.call(this, ...args);
           return;
         }
         this[key] = value;
