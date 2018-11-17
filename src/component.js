@@ -67,18 +67,13 @@ class SuperComponent extends PureComponent {
   setState(...args) {
     if (typeof args[0] === 'string') {
       const [key, setter] = args;
-      if (!this._stateSetters[key]) {
-        if (setter === undefined) {
-          this._stateSetters[key] = value => this.setState({ [key]: value });
-        } else if (typeof setter === 'function') {
-          this._stateSetters[key] = (...invokeArgs) => super.setState({
-            [key]: setter(this.state[key], ...invokeArgs),
-          });
-        } else {
-          this._stateSetters[key] = () => this.setState({ [key]: setter });
-        }
+      const setterKey = JSON.stringify({ key, setter });
+      if (!this._stateSetters[setterKey]) {
+        this._stateSetters[setterKey] = setter === undefined
+          ? value => this.setState({ [key]: value })
+          : () => this.setState({ [key]: setter });
       };
-      return this._stateSetters[key];
+      return this._stateSetters[setterKey];
     }
     const changes = args[0];
     let hasChanges = false;
