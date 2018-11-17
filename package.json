@@ -31,7 +31,7 @@
     "reselect",
     "connect",
     "redux",
-    "react",
+    "react"
   ],
   "license": "MIT",
   "main": "dist/reactdux.js",
