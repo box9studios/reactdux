@@ -74,17 +74,22 @@ export default container(
 
 ## Components
 ```js
-import React, { component } from 'reactdux';
+import React from 'react';
+import { component } from 'reactdux';
 
 export default component({
-  props: {{ name: 'Joe' },
-  state: { breaths: 0 },
+  props: {
+    name: 'Joe',
+  },
+  state: {
+    breaths: 0,
+  },
   lifecycle: {
     mount() {
-      console.log(`hello ${this.props.name}`);
+      this.timer = setInterval(this.onTimer, 1000);
     },
     unmount() {
-      console.log('goodbye');
+      clearInterval(this.timer);
     },
     update() {
       console.log(`breaths: ${this.state.breaths}`);
@@ -95,9 +100,14 @@ export default component({
   },
   render() {
     return (
-      <button onClick={this.onButtonClick}>
-        breaths: {this.state.breaths}
-      </button>
+      <div>
+        <button onClick={this.onButtonClick}>
+          breaths: {this.state.breaths}
+        </button>
+        <button onClick={this.setState('breaths', 0)}>
+          Reset Breaths
+        </button>
+      </div>
     );
   },
 });
@@ -107,36 +117,27 @@ export default component({
 ```js
 import { style } from 'reactdux';
 
-const stylesheet = style({
-  '@keyframes grow': {
-    from: { transform: 'scale(0)' },
-    to: { transform: 'scale(1)' },
+const styles = style({
+  '@keyframes blink': {
+    from: { color: 'blue' },
+    to: { color: 'red' },
   },
   button: {
-    background: 'green',
-    '&.active': {
-      background: 'blue',
-    },
+    cursor: 'pointer',
   },
   text: {
-    animation: 'grow 1s linear forwards',
-    color: 'blue',
+    animation: 'blink 1s linear',
   },
 });
 
-const resetButtonStyle = style({ background: 'red' });
-
-const Wrapper = style(
-  'div',
-  props => ({ opacity: props.active ? '1' : '0' }),
-);
+const Wrapper = style('div', props => ({
+  opacity: props.active ? '1' : '0',
+}));
 
 export default props => (
   <Wrapper active={props.active}>
-    <p className={stylesheet.text}>Hello World!</p>
-    <button className={style(stylesheet.button, props.active && 'active')}>
-        Push
-    </button>
+    <p className={styles.text}>Hello World</p>
+    <button className={styles.button>Wave</button>
   </Wrapper>
 );
 ```
