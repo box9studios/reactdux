@@ -106,7 +106,7 @@ export default config => {
           case 'constructor':
           case 'init':
           case 'run':
-            value(this.props);
+            value.call(this, this.props);
             break;
           case 'add':
           case 'attach':
@@ -122,9 +122,11 @@ export default config => {
           case 'remove':
           case 'unmount':
             this.componentWillUnmount = value.bind(this);
+            break;
           case 'componentDidUpdate':
           case 'update':
             this.componentDidUpdate = value.bind(this);
+            break;
         }
       });
       Object.entries(other).forEach(([key, value]) => {
