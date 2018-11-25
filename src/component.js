@@ -13,13 +13,11 @@ const getConfig = config => {
   const {
     props: defaultProps,
     state: defaultState,
-    lifecycle: lifecycleHooks,
     ...other
   } = config;
   return {
     defaultProps,
     defaultState,
-    lifecycleHooks,
     other,
   };
 };
@@ -94,20 +92,22 @@ export default config => {
   const {
     defaultProps = {},
     defaultState = {},
-    lifecycleHooks = {},
     other,
   } = getConfig(config);
   const componentClass = class extends SuperComponent {
     constructor(props) {
       super(props);
       this.state = getInitialState(defaultState, this.props);
-      Object.entries(lifecycleHooks).forEach(([key, value]) => {
+      Object.entries(other).forEach(([key, value]) => {
+        if (key === 'props' || key === 'state') {
+          return;
+        }
         switch (key) {
           case 'constructor':
           case 'init':
           case 'run':
             value.call(this, this.props);
-            break;
+            return;
           case 'add':
           case 'attach':
           case 'append':
@@ -115,27 +115,18 @@ export default config => {
           case 'componentDidMount':
           case 'mount':
             this.componentDidMount = value.bind(this);
-            break;
+            return;
           case 'after':
           case 'componentWillUnmount':
           case 'detach':
           case 'remove':
           case 'unmount':
             this.componentWillUnmount = value.bind(this);
-            break;
+            return;
           case 'componentDidUpdate':
           case 'update':
             this.componentDidUpdate = value.bind(this);
-            break;
-        }
-      });
-      Object.entries(other).forEach(([key, value]) => {
-        if (
-          key === 'state'
-          || key === 'props'
-          || key === 'lifecycle'
-        ) {
-          return;
+            return;
         }
         if (typeof value === 'function') {
           if (key === 'render') {
