@@ -103,23 +103,16 @@ export default config => {
           return;
         }
         switch (key) {
-          case 'constructor':
+          case 'construct':
           case 'init':
           case 'run':
             value.call(this, this.props);
             return;
-          case 'add':
-          case 'attach':
-          case 'append':
-          case 'before':
           case 'componentDidMount':
           case 'mount':
             this.componentDidMount = value.bind(this);
             return;
-          case 'after':
           case 'componentWillUnmount':
-          case 'detach':
-          case 'remove':
           case 'unmount':
             this.componentWillUnmount = value.bind(this);
             return;
