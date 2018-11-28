@@ -26,24 +26,28 @@
     "dist"
   ],
   "keywords": [
-    "react-redux",
-    "redux-actions",
-    "reselect",
     "connect",
+    "react",
+    "react-redux",
+    "reducer",
     "redux",
-    "react"
+    "redux-actions",
+    "redux-saga",
+    "redux-thunk",
+    "reselect",
+    "selector"
   ],
   "license": "MIT",
   "main": "dist/reactdux.js",
   "name": "reactdux",
   "repository": {
     "type": "git",
-    "url": "https://github.com/stevebinder/reactdux"
+    "url": "https://github.com/box9studios/reactdux"
   },
   "scripts": {
     "build": "rm -rf dist && mkdir dist && NODE_ENV=production webpack --display=errors-only && echo 'BUILT!'",
     "build:dev": "rm -rf dist && mkdir dist && NODE_ENV=development webpack",
     "release": "git checkout master && git pull origin master && git push origin master && npm run build && npm publish && echo 'RELEASED!'"
   },
-  "version": "0.34.0"
+  "version": "1.0.0"
 }
