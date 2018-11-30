@@ -1,5 +1,5 @@
 import { PureComponent } from 'react';
-import copy from './utils';
+import { copy } from './utils';
 
 const noop = () => {};
 
@@ -125,10 +125,7 @@ export default config => {
         if (typeof value === 'function') {
           if (key === 'render') {
             this[key] = () => {
-              const result = value.call(this, {
-                ...this.props,
-                ...this.state,
-              });
+              const result = value.call(this, this.props, this.state);
               if (result === undefined) {
                 return null;
               }

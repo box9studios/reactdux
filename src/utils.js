@@ -5,7 +5,7 @@ export function copy(value) {
     return value;
   }
   if (typeof value === 'object') {
-    return value instanceof 'Array' ? [...value] : { ...value };
+    return value instanceof Array ? [...value] : { ...value };
   }
   return value;
 }
