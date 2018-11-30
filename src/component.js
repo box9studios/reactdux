@@ -1,5 +1,5 @@
 import { PureComponent } from 'react';
-import copy from 'src/utils';
+import copy from './utils';
 
 const noop = () => {};
 
