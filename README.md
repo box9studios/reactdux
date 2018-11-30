@@ -7,7 +7,8 @@ Simplify your React+Redux setup.
 ## Setup
 
 ```js
-import React, { app } from 'reactdux';
+import React from 'react';
+import { app } from 'reactdux';
 import reducer from './reducer';
 import middlewares from './middlewares';
 import Component from './component';
