@@ -1,4 +1,5 @@
 import { PureComponent } from 'react';
+import copy from 'src/utils';
 
 const noop = () => {};
 
@@ -126,8 +127,7 @@ export default config => {
             this[key] = () => {
               const result = value.call(this, {
                 ...this.props,
-                getState: this.getState.bind(this),
-                setState: this.setState.bind(this),
+                ...this.state,
               });
               if (result === undefined) {
                 return null;
@@ -139,7 +139,7 @@ export default config => {
           this[key] = (...args) => value.call(this, ...args);
           return;
         }
-        this[key] = value;
+        this[key] = copy(value);
       });
       if (!this.render) {
         this.render = () => null;

@@ -1,5 +1,15 @@
 let store = null;
 
+export function copy(value) {
+  if (!value) {
+    return value;
+  }
+  if (typeof value === 'object') {
+    return value instanceof 'Array' ? [...value] : { ...value };
+  }
+  return value;
+}
+
 export function dispatch(action) {
   if (!store) {
     throw new Error('no store found');
