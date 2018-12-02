@@ -4,8 +4,11 @@ export function copy(value) {
   if (!value) {
     return value;
   }
-  if (typeof value === 'object') {
-    return value instanceof Array ? [...value] : { ...value };
+  if (value.constructor === Object) {
+    return { ...value };
+  }
+  if (value.constructor === Array) {
+    return [...value];
   }
   return value;
 }
