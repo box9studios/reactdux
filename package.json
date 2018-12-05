@@ -1,7 +1,6 @@
 {
   "author": "Box 9 Studios <email@box9studios.com>",
   "dependencies": {
-    "classnames": "^2.2.6",
     "emotion": "^9.2.12",
     "react": "^16.5.2",
     "react-dom": "^16.5.2",
@@ -10,21 +9,10 @@
     "redux": "^4.0.1"
   },
   "description": "Simplify your React+Redux setup.",
-  "devDependencies": {
-    "@babel/core": "^7.1.2",
-    "@babel/preset-env": "^7.1.0",
-    "@babel/preset-react": "^7.0.0",
-    "babel-loader": "^8.0.4",
-    "webpack": "^4.22.0",
-    "webpack-cli": "^3.1.2"
-  },
   "engines": {
     "node": "10.6.0",
     "npm": "6.1.0"
   },
-  "files": [
-    "dist"
-  ],
   "keywords": [
     "connect",
     "react",
@@ -38,7 +26,6 @@
     "selector"
   ],
   "license": "MIT",
-  "main": "dist/reactdux.js",
   "name": "reactdux",
   "repository": {
     "type": "git",
