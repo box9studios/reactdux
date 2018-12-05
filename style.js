@@ -1,4 +1,5 @@
-import { css, cx } from 'emotion';
+import classnames from 'classnames';
+import { css } from 'emotion';
 import styled, { keyframes } from 'react-emotion';
 
 const addAnimation = (lookup, key, steps) => {
@@ -30,12 +31,6 @@ const createStyledComponent = (tag, creator) => {
   return styled(tag)(props => fnCreator(props));
 };
 
-const getFirstValue = obj => {
-  for (let i in obj) {
-    return obj[i];
-  }
-};
-
 const replaceAnimations = (input, animations) => Object.entries(input).reduce(
   (result, [key, value]) => ({
     ...result,
@@ -56,24 +51,75 @@ const replaceAnimations = (input, animations) => Object.entries(input).reduce(
   {},
 );
 
-const convertStyle = (...args) => {
-  const [a, b] = args;
-  if (typeof a === 'object') {
-    if (typeof getFirstValue(a) === 'object') {
-      return convertObjectToStyles(a, true);
+const convertCssKey = key => key
+  .split('')
+  .reduce(
+    (result, letter, index) => {
+      if (letter === '-') {
+        return result;
+      }
+      if (result[index - 1] === '-') {
+        return `${result}${letter.toUpperCase()}`;
+      }
+      return `${result}${letter}`;
+    },
+    '',
+  );
+
+const convertTextStylesToObject  = text =>
+  (text.match(/\.[a-z0-9-][\s\S]+?\{[\s\S]+?\}/ig) || [])
+    .reduce(
+      (result, section) => {
+        const name = section.match(/\.([a-z0-9-]+)/i)[1];
+        const body = section
+          .match(/\{([\s\S]*?)\}/)[1]
+          .split(/[\n;]/)
+          .filter(item => !!item.trim())
+          .reduce(
+            (result, line) => {
+              const key = line.split(':')[0].trim();
+              const value = line.split(':')[1].trim();
+              const convertedKey = convertCssKey(key);
+              return { ...result, [convertedKey]: value };
+            },
+            {},
+          );
+        return { ...result, [name]: body };
+      },
+      {},
+    );
+
+const isSimpleStylesObject = obj => {
+  for (let key in obj) {
+    if (typeof obj[key] !== 'object') {
+      return true;
     }
-    return css(a);
   }
-  if (typeof a === 'function') {
-    return convertStyle(a());
-  }
-  if (
-    typeof a === 'string'
-    && (typeof b === 'object' || typeof b === 'function')
-  ) {
-    return createStyledComponent(a, b);
-  }
-  return cx(...args);
+  return false;
 };
 
-export default convertStyle;
+const style = (...args) => {
+  const [a, b] = args;
+  if (typeof a === 'function') {
+    return style(a());
+  }
+  if (typeof a === 'object') {
+    if (isSimpleStylesObject(a)) {
+      return css(a);
+    }
+    return convertObjectToStyles(a);
+  }
+  if (typeof a === 'string') {
+    if (typeof b === 'object' || typeof b === 'function') {
+      return createStyledComponent(a, b);
+    }
+    if (!/^[a-z0-9-]+$/i.test(a)) {
+      const obj = convertTextStylesToObject(a);
+      console.log("STRING convert", obj);
+      return style(obj);
+    }
+  }
+  return classnames(...args);
+};
+
+export default style;
