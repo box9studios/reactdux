@@ -118,16 +118,20 @@ export default component({
 ```js
 import { style } from 'reactdux';
 
-const styles = style({
+const text = style({
+  color: 'red',
+});
+
+const stylesheet = style({
   '@keyframes blink': {
     from: { color: 'blue' },
     to: { color: 'red' },
   },
-  button: {
-    cursor: 'pointer',
-  },
-  text: {
+  header: {
     animation: 'blink 1s linear',
+  },
+  submit: {
+    cursor: 'pointer',
   },
 });
 
@@ -137,8 +141,15 @@ const Wrapper = style('div', props => ({
 
 export default props => (
   <Wrapper active={props.active}>
-    <p className={styles.text}>Hello World</p>
-    <button className={styles.button>Wave</button>
+    <h1 className={stylesheet.header}>
+      Hello World
+    </h1>
+    <button className={stylesheet.submit>
+      Wave
+    </button>
+    <p className={text}>
+      The End
+    </p>
   </Wrapper>
 );
 ```
