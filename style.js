@@ -31,6 +31,17 @@ const createStyledComponent = (tag, creator) => {
   return styled(tag)(props => fnCreator(props));
 };
 
+const isSimpleStylesObject = obj => {
+  for (let key in obj) {
+    if (typeof obj[key] !== 'object') {
+      return true;
+    }
+  }
+  return false;
+};
+
+const isValidClassName = value => /^[a-z0-9-]+$/i.test(value);
+
 const replaceAnimations = (input, animations) => Object.entries(input).reduce(
   (result, [key, value]) => ({
     ...result,
@@ -51,57 +62,10 @@ const replaceAnimations = (input, animations) => Object.entries(input).reduce(
   {},
 );
 
-const convertCssKey = key => key
-  .split('')
-  .reduce(
-    (result, letter, index) => {
-      if (letter === '-') {
-        return result;
-      }
-      if (result[index - 1] === '-') {
-        return `${result}${letter.toUpperCase()}`;
-      }
-      return `${result}${letter}`;
-    },
-    '',
-  );
-
-const convertTextStylesToObject  = text =>
-  (text.match(/\.[a-z0-9-][\s\S]+?\{[\s\S]+?\}/ig) || [])
-    .reduce(
-      (result, section) => {
-        const name = section.match(/\.([a-z0-9-]+)/i)[1];
-        const body = section
-          .match(/\{([\s\S]*?)\}/)[1]
-          .split(/[\n;]/)
-          .filter(item => !!item.trim())
-          .reduce(
-            (result, line) => {
-              const key = line.split(':')[0].trim();
-              const value = line.split(':')[1].trim();
-              const convertedKey = convertCssKey(key);
-              return { ...result, [convertedKey]: value };
-            },
-            {},
-          );
-        return { ...result, [name]: body };
-      },
-      {},
-    );
-
-const isSimpleStylesObject = obj => {
-  for (let key in obj) {
-    if (typeof obj[key] !== 'object') {
-      return true;
-    }
-  }
-  return false;
-};
-
 const style = (...args) => {
   const [a, b] = args;
   if (typeof a === 'function') {
-    return style(a());
+    return style('div', a);
   }
   if (typeof a === 'object') {
     if (isSimpleStylesObject(a)) {
@@ -110,13 +74,15 @@ const style = (...args) => {
     return convertObjectToStyles(a);
   }
   if (typeof a === 'string') {
-    if (typeof b === 'object' || typeof b === 'function') {
+    if (
+      typeof b === 'object'
+      || typeof b === 'function'
+      || (typeof b === 'string' && !isValidClassName(b))
+    ) {
       return createStyledComponent(a, b);
     }
-    if (!/^[a-z0-9-]+$/i.test(a)) {
-      const obj = convertTextStylesToObject(a);
-      console.log("STRING convert", obj);
-      return style(obj);
+    if (!isValidClassName(a)) {
+      return css(a);
     }
   }
   return classnames(...args);
