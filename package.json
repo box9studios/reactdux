@@ -9,7 +9,7 @@
     "react-redux": "^5.0.7",
     "redux": "^4.0.1"
   },
-  "description": "Simplify your React+Redux setup.",
+  "description": "Simplify your React + Redux setup.",
   "engines": {
     "node": "10.6.0",
     "npm": "6.1.0"
