@@ -40,7 +40,15 @@ const isSimpleStylesObject = obj => {
   return false;
 };
 
-const isValidClassName = value => /^[a-z0-9-]+$/i.test(value);
+const isValidClassName = value => {
+  if (typeof value !== 'string') {
+    return false;
+  }
+  if (!value) {
+    return true;
+  }
+  return /^[a-z0-9-]+$/i.test(value);
+};
 
 const replaceAnimations = (input, animations) => Object.entries(input).reduce(
   (result, [key, value]) => ({
