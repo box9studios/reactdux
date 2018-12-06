@@ -47,7 +47,7 @@ const isValidClassName = value => {
   if (!value) {
     return true;
   }
-  return /^[a-z0-9-]+$/i.test(value);
+  return /^[a-z0-9 -]+$/i.test(value);
 };
 
 const replaceAnimations = (input, animations) => Object.entries(input).reduce(
