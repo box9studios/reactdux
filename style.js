@@ -1,5 +1,4 @@
-import classnames from 'classnames';
-import { css } from 'emotion';
+import { css, cx } from 'emotion';
 import styled, { keyframes } from 'react-emotion';
 
 const addAnimation = (lookup, key, steps) => {
@@ -93,7 +92,7 @@ const style = (...args) => {
       return css(a);
     }
   }
-  return classnames(...args);
+  return cx(...args);
 };
 
 export default style;
