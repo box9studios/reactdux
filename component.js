@@ -41,7 +41,7 @@ class SuperComponent extends PureComponent {
 
   getRef(name, callback) {
     const ref = this._refLookup[name];
-    if (callback) {
+    if (ref && callback) {
       callback(ref);
     }
     return ref;
@@ -55,7 +55,7 @@ class SuperComponent extends PureComponent {
     if (!this._refSetters[name]) {
       this._refSetters[name] = ref => {
         this._refLookup[name] = ref;
-        if (callback) {
+        if (ref && callback) {
           callback(ref);
         }
       };
