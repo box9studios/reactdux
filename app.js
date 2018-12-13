@@ -15,18 +15,21 @@ export default (
     middleware.length ? applyMiddleware(...middleware) : undefined,
   );
   setStore(store);
-  const element = createElement(
+  const element = () => createElement(
     Provider,
     { store },
-    component,
+    createElement(component),
   );
-  if (!target) {
+  if (target) {
+    if (typeof target === 'string' && window && window.document) {
+      render(element(), document.querySelector(target));
+    } else {
+      render(element(), target);
+    }
+  } else if (window && window.document) {
     const container = document.createElement('div');
-    render(element, container);
+    render(element(), container);
     document.body.appendChild(container);
-  } else if (typeof target === 'string') {
-    render(element, document.querySelector(target));
-  } else {
-    render(element, target);
   }
+  return element;
 };
