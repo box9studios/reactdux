@@ -1,4 +1,5 @@
 import { css, cx } from 'emotion';
+import { createElement } from 'react';
 import styled, { keyframes } from 'react-emotion';
 import { removeUndefinedKeys } from './utils';
 
@@ -163,11 +164,23 @@ const createCss = input => {
   );
 };
 
-const createStyledComponent = (tag, creator) => {
-  const fnCreator = typeof creator === 'function'
-    ? creator
-    : () => creator;
-  return styled(tag)(props => fnCreator(props));
+const createStyledComponent = (tag, styler) => {
+  const fn = typeof styler === 'function'
+    ? styler
+    : () => styler;
+  if (window && window.document) {
+    return styled(tag)(fn);
+  }
+  return props => createElement(
+    tag,
+    {
+      ...props,
+      style: {
+        ...props.style,
+        ...fn(props),
+      },
+    },
+  );
 };
 
 const isSimpleStylesObject = obj => {
@@ -214,13 +227,13 @@ const style = (...args) => {
   if (typeof a === 'function') {
     return style('div', a);
   }
-  if (typeof a === 'object') {
+  if (typeof a === 'object' && !b) {
     if (isSimpleStylesObject(a)) {
       return createCss(a);
     }
     return convertObjectToStyles(a);
   }
-  if (typeof a === 'string') {
+  if (typeof a === 'object' || typeof a === 'string') {
     if (
       typeof b === 'object'
       || typeof b === 'function'
