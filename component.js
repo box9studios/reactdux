@@ -32,12 +32,10 @@ const getInitialState = (defaultState = {}, props = {}) => {
 
 class SuperComponent extends PureComponent {
 
-  constructor(props) {
-    super(props);
-    this._refLookup = {};
-    this._refSetters = {};
-    this._stateSetters = {};
-  }
+  state = {};
+  _refLookup = {};
+  _refSetters = {};
+  _stateSetters = {};
 
   getRef(name, callback) {
     const ref = this._refLookup[name];
@@ -87,6 +85,14 @@ class SuperComponent extends PureComponent {
     }
     super.setState(...args);
   }
+
+  get(...args) {
+    this.getState(...args);
+  }
+
+  set(...args) {
+    this.setState(...args);
+  }
 }
 
 export default config => {
@@ -125,12 +131,19 @@ export default config => {
         if (typeof value === 'function') {
           if (key === 'render') {
             this[key] = () => {
-              const result = value.call(this, this.props, this.state);
+              const result = value.call(
+                this,
+                {
+                  ...this.props,
+                  ...this.state,
+                },
+                (...args) => this.setState(...args),
+              );
               if (result === undefined) {
                 return null;
               }
               return result;
-            }
+            };
             return;
           }
           this[key] = (...args) => value.call(this, ...args);
