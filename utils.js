@@ -59,6 +59,18 @@ export function getState() {
   return store.getState();
 }
 
+export function removeUndefinedKeys(obj) {
+  return Object.entries(obj).reduce(
+    (result, [key, value]) => {
+      if (value === undefined) {
+        return result;
+      }
+      return { ...result, [key]: value };
+    },
+    {},
+  );
+};
+
 export function setStore(nextStore) {
   if (store) {
     throw new Error('store already created');
