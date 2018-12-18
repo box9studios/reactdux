@@ -1,10 +1,9 @@
 # Reactdux
-Simplify your React+Redux setup.
 
-```npm install reactdux```
+Simple React/Redux.
 
 
-## Setup
+## App
 
 ```js
 import { app } from 'reactdux';
@@ -56,18 +55,13 @@ const selectFriends = selector(
 ## Containers
 ```js
 import { container } from 'reactdux';
-import { withAge, withName } from './hocs';
-import { setAge } from './actions';
+import { withAge } from './providers';
 import { selectFriends } from './selectors';
 
 export default container(
   withAge,
-  withName,
-  props => ({
-    friends: selectFriends(65),
-    retired: props.age >= 65,
-    setAge,
-  }),
+  { friends: selectFriends },
+  props => ({ retired: props.age >= 65 }),
   Component,
 );
 ```
@@ -82,73 +76,38 @@ export default component({
     name: 'Joe',
   },
   state: {
-    breaths: 0,
+    ticks: 0,
   },
-  lifecycle: {
-    mount() {
-      this.timer = setInterval(this.onTimer, 1000);
-    },
-    unmount() {
-      clearInterval(this.timer);
-    },
-    update() {
-      console.log(`breaths: ${this.state.breaths}`);
-    },
+  mount() {
+    this.timer = setInterval(this.onTick, 1000);
   },
-  onButtonClick() {
-    this.setState({ breaths: this.state.breaths + 1 });
+  unmount() {
+    clearInterval(this.timer);
+  },
+  update() {
+   console.log(`ticks: ${this.state.ticks}`);
+  },
+  onTick() {
+    this.setState({ ticks: this.state.ticks + 1 });
   },
   render() {
     return (
       <div>
-        <button onClick={this.onButtonClick}>
-          breaths: {this.state.breaths}
-        </button>
-        <button onClick={this.setState('breaths', 0)}>
-          Reset Breaths
-        </button>
+        <span>{this.state.ticks}</span>
+        <button onClick={this.setState('ticks', 0)}>Reset</button>
       </div>
     );
   },
 });
 ```
 
-## Styles
+## Shorthand Components
 ```js
-import { style } from 'reactdux';
-
-const text = style({
-  color: 'red',
-});
-
-const stylesheet = style({
-  '@keyframes blink': {
-    from: { color: 'blue' },
-    to: { color: 'red' },
-  },
-  header: {
-    animation: 'blink 1s linear',
-  },
-  submit: {
-    cursor: 'pointer',
-  },
-});
-
-const Wrapper = style('div', props => ({
-  opacity: props.active ? '1' : '0',
-}));
-
-export default props => (
-  <Wrapper active={props.active}>
-    <h1 className={stylesheet.header}>
-      Hello World
-    </h1>
-    <button className={stylesheet.submit>
-      Wave
-    </button>
-    <p className={text}>
-      The End
-    </p>
-  </Wrapper>
+export default component(({ name = 'Joe',  ticks = 0 }, setState) => (
+  <div>
+    <span>{name}: {ticks}</span>
+    <button onClick={() => setState({ ticks: ticks + 1 })}>Tick</button>
+    <button onClick={setState('ticks', 0)}>Reset</button>
+  </div>
 );
 ```
