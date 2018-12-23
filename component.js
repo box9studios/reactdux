@@ -1,11 +1,20 @@
 import { PureComponent } from 'react';
 import { copy } from './utils';
 
-const noop = () => {};
+const defaultRender = () => null;
+
+const getCalculatedState = (stater, props) => {
+  if (typeof stater === 'function') {
+    return stater(props);
+  }
+  return stater;
+};
 
 const getConfig = config => {
   if (typeof config === 'function') {
     return {
+      defaultProps: {},
+      defaultState: {},
       other: {
         render: config,
       },
@@ -17,20 +26,22 @@ const getConfig = config => {
     ...other
   } = config;
   return {
-    defaultProps,
-    defaultState,
+    defaultProps: defaultProps || {},
+    defaultState: defaultState || {},
     other,
   };
 };
 
-const getInitialState = (defaultState = {}, props = {}) => {
-  if (typeof defaultState === 'function') {
-    return defaultState(props);
+const isEqualState = (baseState, changes) => {
+  for (const key in changes) {
+    if (changes[key] !== baseState[key]) {
+      return false;
+    }
   }
-  return defaultState;
+  return true;
 };
 
-class SuperComponent extends PureComponent {
+class ReactduxBaseComponent extends PureComponent {
 
   state = {};
   _refLookup = {};
@@ -73,17 +84,9 @@ class SuperComponent extends PureComponent {
       return this._stateSetters[setterKey];
     }
     const changes = args[0];
-    let hasChanges = false;
-    for (const key in changes) {
-      if (changes[key] !== this.state[key]) {
-        hasChanges = true;
-        break;
-      }
+    if (!isEqualState(this.state, changes)) {
+      super.setState(...args);
     }
-    if (!hasChanges) {
-      return;
-    }
-    super.setState(...args);
   }
 
   get(...args) {
@@ -96,66 +99,65 @@ class SuperComponent extends PureComponent {
 }
 
 export default config => {
-  const {
-    defaultProps = {},
-    defaultState = {},
-    other,
-  } = getConfig(config);
-  const componentClass = class extends SuperComponent {
+  const { defaultProps, defaultState, other } = getConfig(config);
+  const ReactduxComponent = class extends ReactduxBaseComponent {
     constructor(props) {
       super(props);
-      this.state = getInitialState(defaultState, this.props);
+      this.state = getCalculatedState(defaultState, this.props);
       Object.entries(other).forEach(([key, value]) => {
-        if (key === 'props' || key === 'state') {
-          return;
-        }
-        switch (key) {
-          case 'construct':
-          case 'init':
-          case 'run':
-            value.call(this, this.props);
-            return;
-          case 'componentDidMount':
-          case 'mount':
-            this.componentDidMount = value.bind(this);
-            return;
-          case 'componentWillUnmount':
-          case 'unmount':
-            this.componentWillUnmount = value.bind(this);
-            return;
-          case 'componentDidUpdate':
-          case 'update':
-            this.componentDidUpdate = value.bind(this);
-            return;
-        }
-        if (typeof value === 'function') {
-          if (key === 'render') {
-            this[key] = () => {
-              const result = value.call(
-                this,
-                {
-                  ...this.props,
-                  ...this.state,
-                },
-                (...args) => this.setState(...args),
-              );
-              if (result === undefined) {
-                return null;
-              }
-              return result;
-            };
-            return;
+        if (key === 'constructor') {
+          value.call(this, props);
+        } else if (key === 'componentDidMount') {
+          this.componentDidMount = value.bind(this);
+        } else if (key === 'componentDidUpdate') {
+          this.componentDidUpdate = value.bind(this);
+        } else if (key === 'componentWillUnmount') {
+          this.componentWillUnmount = value.bind(this);
+        } else if (key === 'initialize') {
+          value.call(this, { ...this.props, ...this.state });
+        } else if (key === 'mount') {
+          this.componentDidMount = () =>
+            value.call(this, { ...this.props, ...this.state });
+        } else if (key === 'unmount') {
+          this.componentWillUnmount = () =>
+            value.call(this, { ...this.props, ...this.state });
+        } else if (key === 'update') {
+          this.componentDidUpdate = (prevProps, prevState) => value.call(
+            this,
+            { ...this.props, ...this.state },
+            { ...prevProps, ...prevState },
+          );
+        } else if (key !== 'props' && key !== 'state') {
+          if (typeof value === 'function') {
+            if (key === 'render') {
+              this[key] = () => {
+                const result = value.call(
+                  this,
+                  {
+                    ...this.props,
+                    ...this.state,
+                  },
+                  (...args) => this.setState(...args),
+                );
+                if (result === undefined) {
+                  return null;
+                }
+                return result;
+              };
+            } else {
+              this[key] = (...args) => value.call(this, ...args);
+            }
+          } else {
+            this[key] = copy(value);
           }
-          this[key] = (...args) => value.call(this, ...args);
-          return;
         }
-        this[key] = copy(value);
       });
       if (!this.render) {
-        this.render = () => null;
+        this.render = defaultRender;
       }
     }
   };
-  componentClass.defaultProps = defaultProps;
-  return componentClass;
+  ReactduxComponent.defaultProps = defaultProps;
+  ReactduxComponent.displayName = 'AnonymousComponent';
+  return ReactduxComponent;
 };
