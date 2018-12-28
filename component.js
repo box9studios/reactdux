@@ -1,4 +1,5 @@
 import { PureComponent } from 'react';
+import createContainer from './container';
 import { copy } from './utils';
 
 const defaultRender = () => null;
@@ -7,29 +8,29 @@ const getCalculatedState = (stater, props) => {
   if (typeof stater === 'function') {
     return stater(props);
   }
-  return stater;
+  if (stater && typeof stater === 'object') {
+    return stater;
+  }
+  return {};
 };
 
-const getConfig = config => {
+const getConfig = (config = {}) => {
   if (typeof config === 'function') {
     return {
-      defaultProps: {},
-      defaultState: {},
-      other: {
-        render: config,
-      },
+      render: config,
     };
   }
-  const {
-    props: defaultProps,
-    state: defaultState,
-    ...other
-  } = config;
-  return {
-    defaultProps: defaultProps || {},
-    defaultState: defaultState || {},
-    other,
-  };
+  return config;
+};
+
+const wrapComponent = (component, providers) => {
+  if (!providers) {
+    return component;
+  }
+  return createContainer(
+    ...(providers.constructor === Array ? providers : [providers]),
+    component,
+  );
 };
 
 const isEqualState = (baseState, changes) => {
@@ -99,12 +100,17 @@ class ReactduxBaseComponent extends PureComponent {
 }
 
 export default config => {
-  const { defaultProps, defaultState, other } = getConfig(config);
-  const ReactduxComponent = class extends ReactduxBaseComponent {
-    constructor(props) {
-      super(props);
-      this.state = getCalculatedState(defaultState, this.props);
-      Object.entries(other).forEach(([key, value]) => {
+  const {
+    container,
+    props,
+    state,
+    ...rest
+  } = getConfig(config);
+  const component = class ReactduxComponent extends ReactduxBaseComponent {
+    constructor(...args) {
+      super(...args);
+      this.state = getCalculatedState(state, this.props);
+      Object.entries(rest).forEach(([key, value]) => {
         if (key === 'constructor') {
           value.call(this, props);
         } else if (key === 'componentDidMount') {
@@ -113,7 +119,7 @@ export default config => {
           this.componentDidUpdate = value.bind(this);
         } else if (key === 'componentWillUnmount') {
           this.componentWillUnmount = value.bind(this);
-        } else if (key === 'initialize') {
+        } else if (key === 'init') {
           value.call(this, { ...this.props, ...this.state });
         } else if (key === 'mount') {
           this.componentDidMount = () =>
@@ -157,7 +163,6 @@ export default config => {
       }
     }
   };
-  ReactduxComponent.defaultProps = defaultProps;
-  ReactduxComponent.displayName = 'AnonymousComponent';
-  return ReactduxComponent;
+  component.defaultProps = props;
+  return wrapComponent(component, container);
 };
