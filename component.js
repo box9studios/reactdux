@@ -1,12 +1,10 @@
 import { PureComponent } from 'react';
 import createContainer from './container';
-import { copy } from './utils';
+import { copy, isEqual } from './utils';
 
-const defaultRender = () => null;
-
-const getCalculatedState = (stater, props) => {
+const getCalculatedState = (stater, props, state) => {
   if (typeof stater === 'function') {
-    return stater(props);
+    return stater({ ...props, ...state }, !state);
   }
   if (stater && typeof stater === 'object') {
     return stater;
@@ -14,13 +12,20 @@ const getCalculatedState = (stater, props) => {
   return {};
 };
 
-const getConfig = (config = {}) => {
+const getDetails = (config = {}) => {
   if (typeof config === 'function') {
-    return {
-      render: config,
-    };
+    return { render: config };
   }
   return config;
+};
+
+const isEqualState = (baseState, changes) => {
+  for (const key in changes) {
+    if (changes[key] !== baseState[key]) {
+      return false;
+    }
+  }
+  return true;
 };
 
 const wrapComponent = (component, providers) => {
@@ -31,15 +36,6 @@ const wrapComponent = (component, providers) => {
     ...(providers.constructor === Array ? providers : [providers]),
     component,
   );
-};
-
-const isEqualState = (baseState, changes) => {
-  for (const key in changes) {
-    if (changes[key] !== baseState[key]) {
-      return false;
-    }
-  }
-  return true;
 };
 
 class ReactduxBaseComponent extends PureComponent {
@@ -100,69 +96,103 @@ class ReactduxBaseComponent extends PureComponent {
 }
 
 export default config => {
-  const {
-    container,
-    props,
-    state,
-    ...rest
-  } = getConfig(config);
+  const details = getDetails(config);
+
   const component = class ReactduxComponent extends ReactduxBaseComponent {
-    constructor(...args) {
-      super(...args);
+
+    constructor(initialProps) {
+      super(initialProps);
+      const {
+        container,
+        mount,
+        props,
+        render,
+        setup,
+        state,
+        unmount,
+        update,
+        ...rest
+      } = details;
       this.state = getCalculatedState(state, this.props);
       Object.entries(rest).forEach(([key, value]) => {
-        if (key === 'constructor') {
-          value.call(this, props);
-        } else if (key === 'componentDidMount') {
-          this.componentDidMount = value.bind(this);
-        } else if (key === 'componentDidUpdate') {
-          this.componentDidUpdate = value.bind(this);
-        } else if (key === 'componentWillUnmount') {
-          this.componentWillUnmount = value.bind(this);
-        } else if (key === 'init') {
-          value.call(this, { ...this.props, ...this.state });
-        } else if (key === 'mount') {
-          this.componentDidMount = () =>
-            value.call(this, { ...this.props, ...this.state });
-        } else if (key === 'unmount') {
-          this.componentWillUnmount = () =>
-            value.call(this, { ...this.props, ...this.state });
-        } else if (key === 'update') {
-          this.componentDidUpdate = (prevProps, prevState) => value.call(
-            this,
-            { ...this.props, ...this.state },
-            { ...prevProps, ...prevState },
-          );
-        } else if (key !== 'props' && key !== 'state') {
-          if (typeof value === 'function') {
-            if (key === 'render') {
-              this[key] = () => {
-                const result = value.call(
-                  this,
-                  {
-                    ...this.props,
-                    ...this.state,
-                  },
-                  (...args) => this.setState(...args),
-                );
-                if (result === undefined) {
-                  return null;
-                }
-                return result;
-              };
-            } else {
-              this[key] = (...args) => value.call(this, ...args);
-            }
-          } else {
-            this[key] = copy(value);
-          }
+        if (typeof value === 'function') {
+          this[key] = value.bind(this);
+        } else {
+          this[key] = copy(value);
         }
       });
-      if (!this.render) {
-        this.render = defaultRender;
+      if (setup) {
+        setup.call(
+          this,
+          { ...this.props, ...this.state },
+        );
       }
     }
+
+    componentDidMount = () => {
+      const { componentDidMount, mount } = details;
+      if (componentDidMount) {
+        componentDidMount.call(this);
+      }
+      if (mount) {
+        mount.call(this, { ...this.props, ...this.state });
+      }
+    };
+
+
+    componentWillUnmount = () => {
+      const { componentWillUnmount, unmount } = details;
+      if (componentWillUnmount) {
+        componentWillUnmount.call(this);
+      }
+      if (unmount) {
+        unmount.call(this, { ...this.props, ...this.state });
+      }
+    };
+
+    componentDidUpdate = (prevProps, prevState = {}) => {
+      const { componentDidUpdate, state, update } = details;
+      if (componentDidUpdate) {
+        componentDidUpdate.call(this, prevProps, prevState);
+      }
+      if (update) {
+        update.call(
+          this,
+          { ...this.props, ...this.state },
+          { ...prevProps, ...prevState },
+        );
+      }
+      if (
+        typeof state === 'function'
+        && !isEqual(this.props, prevProps)
+      ) {
+        const nextState = getCalculatedState(
+          state,
+          this.props,
+          this.state
+        );
+        this.setState(nextState);
+      }
+    };
+
+    render = () => {
+      const { render } = details;
+      if (!render) {
+        return null;
+      }
+      const result = render.call(
+        this,
+        { ...this.props, ...this.state },
+        this.setState.bind(this),
+      );
+      if (result === undefined) {
+        return null;
+      }
+      return result;
+    };
   };
-  component.defaultProps = props;
-  return wrapComponent(component, container);
+
+  component.defaultProps = details.props;
+
+  return wrapComponent(component, details.container);
 };

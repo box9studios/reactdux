@@ -29,15 +29,30 @@ export function isArguments(value) {
 }
 
 export function isEqual(a, b) {
-  if (a.length !== b.length) {
-    return false;
-  }
-  for (let i = 0; i < a.length; i += 1) {
-    if (a[i] !== b[i]) {
+  if (a && b) {
+    if (a.length !== b.length) {
       return false;
     }
+    if (a.length) {
+      for (let index = 0; index < a.length; index += 1) {
+        if (a[index] !== b[index]) {
+          return false;
+        }
+      }
+      return true;
+    } else if (typeof a === 'object') {
+      if (Object.keys(a).length !== Object.keys(b).length) {
+        return false;
+      }
+      for (let key in a) {
+        if (a[key] !== b[key]) {
+          return false;
+        }
+      }
+      return true;
+    }
   }
-  return true;
+  return a === b;
 }
 
 export function isFunction(value) {
