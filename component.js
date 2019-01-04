@@ -162,17 +162,6 @@ export default config => {
           { ...prevProps, ...prevState },
         );
       }
-      if (
-        typeof state === 'function'
-        && !isEqual(this.props, prevProps)
-      ) {
-        const nextState = getCalculatedState(
-          state,
-          this.props,
-          this.state
-        );
-        this.setState(nextState);
-      }
     };
 
     render = () => {
