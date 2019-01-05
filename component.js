@@ -1,4 +1,4 @@
-import { PureComponent } from 'react';
+import { Component } from 'react';
 import createContainer from './container';
 import { copy, isEqual } from './utils';
 
@@ -38,12 +38,23 @@ const wrapComponent = (component, providers) => {
   );
 };
 
-class ReactduxBaseComponent extends PureComponent {
+class ReactduxBaseComponent extends Component {
 
+  data = {};
   state = {};
   _refLookup = {};
   _refSetters = {};
   _stateSetters = {};
+
+  shouldComponentUpdate(nextProps, nextState) {
+    this.data = {
+      ...nextProps,
+      ...nextState,
+      ...this.data,
+    };
+    return !isEqual(this.props, nextProps)
+    || !isEqual(this.state, nextState);
+  };
 
   getRef(name, callback) {
     const ref = this._refLookup[name];
@@ -114,6 +125,11 @@ export default config => {
         ...rest
       } = details;
       this.state = getCalculatedState(state, this.props);
+      this.data = {
+        ...this.props,
+        ...this.state,
+        ...details.data,
+      };
       Object.entries(rest).forEach(([key, value]) => {
         if (typeof value === 'function') {
           this[key] = value.bind(this);
