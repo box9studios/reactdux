@@ -19,15 +19,6 @@ const getDetails = (config = {}) => {
   return config;
 };
 
-const isEqualState = (baseState, changes) => {
-  for (const key in changes) {
-    if (changes[key] !== baseState[key]) {
-      return false;
-    }
-  }
-  return true;
-};
-
 const wrapComponent = (component, providers) => {
   if (!providers) {
     return component;
@@ -47,16 +38,16 @@ class ReactduxBaseComponent extends Component {
   _stateSetters = {};
 
   shouldComponentUpdate(nextProps, nextState) {
-    const result = !isEqual(this.props, nextProps)
+    const shouldUpdate = !isEqual(this.props, nextProps)
     || !isEqual(this.state, nextState);
-    if (result) {
+    if (shouldUpdate) {
       this.data = {
+        ...this.data,
         ...nextProps,
         ...nextState,
-        ...this.data,
       };
     }
-    return result;
+    return shouldUpdate;
   };
 
   getRef(name, callback) {
@@ -68,7 +59,7 @@ class ReactduxBaseComponent extends Component {
   }
 
   getState(key) {
-    return this.state[key];
+    return copy(this.state[key]);
   }
 
   setRef(name, callback) {
@@ -83,30 +74,25 @@ class ReactduxBaseComponent extends Component {
     return this._refSetters[name];
   }
 
-  setState(...args) {
-    if (typeof args[0] === 'string') {
-      const [key, setter] = args;
-      const setterKey = JSON.stringify({ key, setter });
-      if (!this._stateSetters[setterKey]) {
-        this._stateSetters[setterKey] = setter === undefined
-          ? value => this.setState({ [key]: value })
-          : () => this.setState({ [key]: setter });
+  setState(a, b, c) {
+    if (typeof a === 'string') {
+      const id = JSON.stringify({ a, b });
+      if (!this._stateSetters[id]) {
+        if (b === undefined) {
+          this._stateSetters[id] = value =>
+            this.setState({ [a]: value });
+        } else {
+          this._stateSetters[id] = () =>
+            this.setState({ [a]: b });
+        }
       };
-      return this._stateSetters[setterKey];
+      return this._stateSetters[id];
     }
-    const changes = args[0];
-    if (!isEqualState(this.state, changes)) {
-      super.setState(...args);
-    }
+    super.setState(a, b);
   }
 
-  get(...args) {
-    this.getState(...args);
-  }
-
-  set(...args) {
-    this.setState(...args);
-  }
+  get = this.getState;
+  set = this.setState;
 }
 
 export default config => {
@@ -115,7 +101,6 @@ export default config => {
   const component = class ReactduxComponent extends ReactduxBaseComponent {
 
     constructor(initialProps) {
-      super(initialProps);
       const {
         container,
         data,
@@ -128,11 +113,12 @@ export default config => {
         update,
         ...rest
       } = details;
+      super(initialProps);
       this.state = getCalculatedState(state, this.props);
       this.data = {
+        ...data,
         ...this.props,
         ...this.state,
-        ...data,
       };
       Object.entries(rest).forEach(([key, value]) => {
         if (typeof value === 'function') {
