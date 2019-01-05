@@ -47,13 +47,16 @@ class ReactduxBaseComponent extends Component {
   _stateSetters = {};
 
   shouldComponentUpdate(nextProps, nextState) {
-    this.data = {
-      ...nextProps,
-      ...nextState,
-      ...this.data,
-    };
-    return !isEqual(this.props, nextProps)
+    const result = !isEqual(this.props, nextProps)
     || !isEqual(this.state, nextState);
+    if (result) {
+      this.data = {
+        ...nextProps,
+        ...nextState,
+        ...this.data,
+      };
+    }
+    return result;
   };
 
   getRef(name, callback) {
@@ -115,6 +118,7 @@ export default config => {
       super(initialProps);
       const {
         container,
+        data,
         mount,
         props,
         render,
@@ -128,7 +132,7 @@ export default config => {
       this.data = {
         ...this.props,
         ...this.state,
-        ...details.data,
+        ...data,
       };
       Object.entries(rest).forEach(([key, value]) => {
         if (typeof value === 'function') {
