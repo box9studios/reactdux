@@ -19,6 +19,15 @@ const getDetails = (config = {}) => {
   return config;
 };
 
+const isEqualState = (state, changes) => {
+  for (const key in changes) {
+    if (changes[key] !== state[key]) {
+      return false;
+    }
+  }
+  return true;
+};
+
 const wrapComponent = (component, providers) => {
   if (!providers) {
     return component;
@@ -38,16 +47,18 @@ class ReactduxBaseComponent extends Component {
   _stateSetters = {};
 
   shouldComponentUpdate(nextProps, nextState) {
-    const shouldUpdate = !isEqual(this.props, nextProps)
-    || !isEqual(this.state, nextState);
-    if (shouldUpdate) {
+    if (
+      !isEqual(this.props, nextProps)
+      || !isEqual(this.state, nextState)
+    ) {
       this.data = {
         ...this.data,
         ...nextProps,
         ...nextState,
       };
+      return true;
     }
-    return shouldUpdate;
+    return false;
   };
 
   getRef(name, callback) {
@@ -88,7 +99,12 @@ class ReactduxBaseComponent extends Component {
       };
       return this._stateSetters[id];
     }
-    super.setState(a, b);
+    if (typeof a === 'function') {
+      this.setState(a(this.state), b);
+    } else if (!isEqualState(this.state, a)) {
+      const callback = b ? () => b(this.state) : undefined;
+      super.setState(a, callback);
+    }
   }
 
   get = this.getState;
