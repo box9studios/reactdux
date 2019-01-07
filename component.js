@@ -105,10 +105,10 @@ export default config => {
       const {
         container,
         data,
+        init,
         mount,
         props,
         render,
-        setup,
         state,
         unmount,
         update,
@@ -124,8 +124,8 @@ export default config => {
           this[key] = copy(value);
         }
       });
-      if (setup) {
-        setup.call(
+      if (init) {
+        init.call(
           this,
           { ...this.props, ...this.state },
         );
