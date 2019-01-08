@@ -1,4 +1,4 @@
-import { PureComponent } from 'react';
+import { Component } from 'react';
 import createContainer from './container';
 import { copy, isEqual } from './utils';
 
@@ -10,6 +10,24 @@ const getCalculatedState = (stater, props, state) => {
     return stater;
   }
   return {};
+};
+
+const getChanges = (a, b) => {
+  const keys = [];
+  const combined = { ...a, ...b };
+  for (const key in combined) {
+    if (
+      combined[key] !== a[key]
+      || combined[key] !== b[key]
+    ) {
+      keys.push({
+        key,
+        next: b[key],
+        prev: a[key],
+      });
+    }
+  }
+  return keys;
 };
 
 const getDetails = (config = {}) => {
@@ -38,7 +56,7 @@ const wrapComponent = (component, providers) => {
   );
 };
 
-class ReactduxBaseComponent extends PureComponent {
+class ReactduxBaseComponent extends Component {
 
   data = {};
   state = {};
@@ -102,21 +120,9 @@ export default config => {
   const component = class ReactduxComponent extends ReactduxBaseComponent {
 
     constructor(initialProps) {
-      const {
-        container,
-        data,
-        init,
-        mount,
-        props,
-        render,
-        state,
-        unmount,
-        update,
-        ...rest
-      } = details;
+      const { init, props, render, state, ...rest } = details;
       super(initialProps);
       this.state = getCalculatedState(state, this.props);
-      this.data = copy(data);
       Object.entries(rest).forEach(([key, value]) => {
         if (typeof value === 'function') {
           this[key] = value.bind(this);
@@ -135,7 +141,7 @@ export default config => {
     componentDidMount = () => {
       const { componentDidMount, mount } = details;
       if (componentDidMount) {
-        componentDidMount.call(this);
+        componentDidMount();
       }
       if (mount) {
         mount.call(this, { ...this.props, ...this.state });
@@ -146,7 +152,7 @@ export default config => {
     componentWillUnmount = () => {
       const { componentWillUnmount, unmount } = details;
       if (componentWillUnmount) {
-        componentWillUnmount.call(this);
+        componentWillUnmount();
       }
       if (unmount) {
         unmount.call(this, { ...this.props, ...this.state });
@@ -156,7 +162,7 @@ export default config => {
     componentDidUpdate = (prevProps, prevState = {}) => {
       const { componentDidUpdate, state, update } = details;
       if (componentDidUpdate) {
-        componentDidUpdate.call(this, prevProps, prevState);
+        componentDidUpdate(prevProps, prevState);
       }
       if (update) {
         update.call(
@@ -165,6 +171,33 @@ export default config => {
           { ...prevProps, ...prevState },
         );
       }
+    };
+
+    shouldComponentUpdate = (nextProps, nextState) => {
+      const { should, shouldComponentUpdate }  = details;
+      if (shouldComponentUpdate) {
+        const r1 = shouldComponentUpdate(nextProps, nextState);
+        if (r1 !== undefined) {
+          return !!r1;
+        }
+      }
+      if (should) {
+        const prevPropsState = { ...this.props, ...this.state };
+        const nextPropsState = { ...nextProps, ...nextState };
+        const r2 = should(
+          prevPropsState,
+          nextPropsState,
+          {
+            getChanges: () => getChanges(prevPropsState, nextPropsState),
+            isEqual,
+          },
+        );
+        if (r2 !== undefined) {
+          return !!r2;
+        }
+      }
+      return !isEqual(this.props, nextProps)
+        || !isEqual(this.state, nextState);
     };
 
     render = () => {
