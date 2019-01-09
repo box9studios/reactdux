@@ -37,6 +37,18 @@ const getDetails = (config = {}) => {
   return config;
 };
 
+const getSetter = (method, obj, key, value) => {
+  const id = JSON.stringify({ key, value });
+  if (!obj[id]) {
+    if (value === undefined) {
+      obj[id] = innerValue => method({ [key]: innerValue });
+    } else {
+      obj[id] = () => method({ [key]: value });
+    }
+  };
+  return obj[id];
+};
+
 const isEqualState = (state, changes) => {
   for (const key in changes) {
     if (changes[key] !== state[key]) {
@@ -60,36 +72,33 @@ class ReactduxBaseComponent extends Component {
 
   data = {};
   state = {};
+  _dataSetters = {};
   _stateSetters = {};
 
-  getState(key) {
-    return copy(this.state[key]);
+  setData(a, b) {
+    if (typeof a === 'string') {
+      return getSetter(this.setData.bind(this), this._dataSetters, a, b);
+    }
+    this.data = {
+      ...this.data,
+      ...(typeof a === 'function' ? a(this.data) : a),
+    };
+    if (b) {
+      b(this.data);
+    }
   }
 
-  setState(a, b, c) {
+  setState(a, b) {
     if (typeof a === 'string') {
-      const id = JSON.stringify({ a, b });
-      if (!this._stateSetters[id]) {
-        if (b === undefined) {
-          this._stateSetters[id] = value =>
-            this.setState({ [a]: value });
-        } else {
-          this._stateSetters[id] = () =>
-            this.setState({ [a]: b });
-        }
-      };
-      return this._stateSetters[id];
+      return getSetter(this.setState.bind(this), this._stateSetters, a, b);
     }
+    const callback = b ? () => b(this.state) : undefined;
     if (typeof a === 'function') {
-      this.setState(a(this.state), b);
+      super.setState(a, callback);
     } else if (!isEqualState(this.state, a)) {
-      const callback = b ? () => b(this.state) : undefined;
       super.setState(a, callback);
     }
   }
-
-  get = this.getState;
-  set = this.setState;
 }
 
 export default config => {
@@ -98,8 +107,11 @@ export default config => {
   const component = class ReactduxComponent extends ReactduxBaseComponent {
 
     constructor(initialProps) {
-      const { init, props, render, state, ...rest } = details;
+      const { data, init, props, render, state, ...rest } = details;
       super(initialProps);
+      if (data !== undefined) {
+        this.data = copy(data);
+      }
       this.state = getCalculatedState(state, this.props);
       Object.entries(rest).forEach(([key, value]) => {
         if (typeof value === 'function') {
