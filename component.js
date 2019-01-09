@@ -60,32 +60,10 @@ class ReactduxBaseComponent extends Component {
 
   data = {};
   state = {};
-  _refLookup = {};
-  _refSetters = {};
   _stateSetters = {};
-
-  getRef(name, callback) {
-    const ref = this._refLookup[name];
-    if (ref && callback) {
-      callback(ref);
-    }
-    return ref;
-  }
 
   getState(key) {
     return copy(this.state[key]);
-  }
-
-  setRef(name, callback) {
-    if (!this._refSetters[name]) {
-      this._refSetters[name] = ref => {
-        this._refLookup[name] = ref;
-        if (ref && callback) {
-          callback(ref);
-        }
-      };
-    };
-    return this._refSetters[name];
   }
 
   setState(a, b, c) {
