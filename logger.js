@@ -55,7 +55,6 @@ export default definitions =>
     next =>
       action => {
         next(action);
-        /* eslint-disable-next-line no-undef */
         if (process.env.NODE_ENV === 'production') {
           return;
         }
