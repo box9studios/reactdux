@@ -30,11 +30,23 @@ const getChanges = (a, b) => {
   return keys;
 };
 
-const getDetails = (config = {}) => {
-  if (typeof config === 'function') {
-    return { render: config };
+const getConfig = (a, b) => {
+  if (b) {
+    if (typeof b === 'function') {
+      return {
+        container: a,
+        render: b,
+      };
+    }
+    return {
+      container: a,
+      ...b,
+    };
   }
-  return config;
+  if (typeof a === 'function') {
+    return { render: a };
+  }
+  return a;
 };
 
 const getSetter = (method, obj, key, value) => {
@@ -69,13 +81,11 @@ const wrapComponent = (component, providers) => {
 };
 
 class ReactduxBaseComponent extends Component {
-
   data = {};
   state = {};
   _dataSetters = {};
   _methodSetters = {};
   _stateSetters = {};
-
   setData(a, b) {
     if (typeof a === 'string') {
       return getSetter(this.setData.bind(this), this._dataSetters, a, b);
@@ -88,7 +98,6 @@ class ReactduxBaseComponent extends Component {
       b(this.data);
     }
   }
-
   setMethod(...args) {
     const memoizers = args.length === 1
       ? [`${args[0]}`]
@@ -103,7 +112,6 @@ class ReactduxBaseComponent extends Component {
     }
     return this._methodSetters[key].method;
   }
-
   setState(a, b) {
     if (typeof a === 'string') {
       return getSetter(this.setState.bind(this), this._stateSetters, a, b);
@@ -117,13 +125,11 @@ class ReactduxBaseComponent extends Component {
   }
 }
 
-export default config => {
-  const details = getDetails(config);
-
+export default (...args) => {
+  const config = getConfig(...args);
   const component = class ReactduxComponent extends ReactduxBaseComponent {
-
     constructor(initialProps) {
-      const { data, init, props, render, state, ...rest } = details;
+      const { data, init, props, render, state, ...rest } = config;
       super(initialProps);
       if (data !== undefined) {
         this.data = copy(data);
@@ -143,20 +149,17 @@ export default config => {
         );
       }
     }
-
     componentDidMount = () => {
-      const { componentDidMount, mount } = details;
+      const { componentDidMount, mount } = config;
       if (componentDidMount) {
         componentDidMount();
       }
       if (mount) {
         mount.call(this, { ...this.props, ...this.state });
       }
-    };
-
-
+    };x
     componentWillUnmount = () => {
-      const { componentWillUnmount, unmount } = details;
+      const { componentWillUnmount, unmount } = config;
       if (componentWillUnmount) {
         componentWillUnmount();
       }
@@ -164,9 +167,8 @@ export default config => {
         unmount.call(this, { ...this.props, ...this.state });
       }
     };
-
     componentDidUpdate = (prevProps, prevState = {}) => {
-      const { componentDidUpdate, state, update } = details;
+      const { componentDidUpdate, state, update } = config;
       if (componentDidUpdate) {
         componentDidUpdate(prevProps, prevState);
       }
@@ -178,9 +180,8 @@ export default config => {
         );
       }
     };
-
     shouldComponentUpdate = (nextProps, nextState) => {
-      const { should, shouldComponentUpdate }  = details;
+      const { should, shouldComponentUpdate }  = config;
       if (shouldComponentUpdate) {
         const r1 = shouldComponentUpdate(nextProps, nextState);
         if (r1 !== undefined) {
@@ -205,9 +206,8 @@ export default config => {
       return !isEqual(this.props, nextProps)
         || !isEqual(this.state, nextState);
     };
-
     render = () => {
-      const { render } = details;
+      const { render } = config;
       if (!render) {
         return null;
       }
@@ -226,8 +226,6 @@ export default config => {
       return result;
     };
   };
-
-  component.defaultProps = details.props;
-
-  return wrapComponent(component, details.container);
+  component.defaultProps = config.props;
+  return wrapComponent(component, config.container);
 };
