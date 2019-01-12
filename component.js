@@ -73,6 +73,7 @@ class ReactduxBaseComponent extends Component {
   data = {};
   state = {};
   _dataSetters = {};
+  _methodSetters = {};
   _stateSetters = {};
 
   setData(a, b) {
@@ -86,6 +87,21 @@ class ReactduxBaseComponent extends Component {
     if (b) {
       b(this.data);
     }
+  }
+
+  setMethod(...args) {
+    const memoizers = args.length === 1
+      ? [`${args[0]}`]
+      : args.slice(0, -1);
+    const method = args[args.length - 1];
+    const key = `${method}`;
+    if (
+      !this._methodSetters[key] ||
+      !isEqual(this._methodSetters[key].memoizers, memoizers)
+    ) {
+      this._methodSetters[key] = { memoizers, method };
+    }
+    return this._methodSetters[key].method;
   }
 
   setState(a, b) {
@@ -198,7 +214,11 @@ export default config => {
       const result = render.call(
         this,
         { ...this.props, ...this.state },
-        this.setState.bind(this),
+        {
+          setData: this.setData.bind(this),
+          setMethod: this.setMethod.bind(this),
+          setState: this.setState.bind(this),
+        },
       );
       if (result === undefined) {
         return null;
