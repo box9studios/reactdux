@@ -27,7 +27,7 @@
   "name": "reactdux",
   "repository": {
     "type": "git",
-    "url": "https://github.com/box9studios/reactdux"
+    "url": "https://github.com/stevebinder/reactdux"
   },
-  "version": "1.21.0"
+  "version": "1.21.1"
 }
