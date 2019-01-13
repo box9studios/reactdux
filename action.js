@@ -34,7 +34,7 @@ export default (...args1) => {
     const payloadReturnValue = payloadCreator(...args2);
     if (isPromise(payloadReturnValue)) {
       return payloadReturnValue.then(onPayload);
-    } else {
+    } else if (payloadReturnValue !== undefined) {
       return onPayload(payloadReturnValue);
     }
   };
