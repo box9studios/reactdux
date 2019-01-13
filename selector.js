@@ -36,11 +36,11 @@ const makeMethod = (...args) => {
   if (args.length <= 1) {
     return getMethod(args[0]);
   }
-  let lastCalculation;
-  let lastCalculators = [];
+  let prevCalculation;
+  let prevCalculators = [];
   return (...args2) => {
     const nextCalculators = args
-      .slice(0, args.length - 1)
+      .slice(0, -1)
       .reduce(
         (calculators, arg, index) => ([
           ...calculators,
@@ -48,11 +48,12 @@ const makeMethod = (...args) => {
         ]),
         [],
       );
-    if (isEqual(nextCalculators, lastCalculators)) {
-      return lastCalculation;
+    if (isEqual(nextCalculators, prevCalculators)) {
+      return prevCalculation;
     }
     const nextCalculation = args[args.length - 1](...nextCalculators);
-    lastCalculation = nextCalculation;
+    prevCalculators = nextCalculators;
+    prevCalculation = nextCalculation;
     return nextCalculation;
   };
 };
