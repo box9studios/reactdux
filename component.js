@@ -141,7 +141,7 @@ class ReactduxBaseComponent extends Component {
 }
 
 export default (a, b) => {
-  if (b && typeof a === 'function') {
+  if (b && typeof a === 'function' && a.render) {
     return createStyledComponent(a, b);
   }
   const config = getConfig(a, b);
