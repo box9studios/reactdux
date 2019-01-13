@@ -185,16 +185,23 @@ export default (a, b) => {
         unmount.call(this, { ...this.props, ...this.state });
       }
     };
-    componentDidUpdate = (prevProps, prevState = {}) => {
+    componentDidUpdate = (prevProps, prevState) => {
       const { componentDidUpdate, state, update } = config;
       if (componentDidUpdate) {
         componentDidUpdate(prevProps, prevState);
       }
       if (update) {
+        const prevPropsState = { ...prevProps, ...prevState };
         update.call(
           this,
-          { ...this.props, ...this.state },
-          { ...prevProps, ...prevState },
+          prevPropsState,
+          {
+            getChanges: () => getChanges(
+              prevPropsState,
+              { ...this.props, ...this.state },
+            ),
+            isEqual,
+          },
         );
       }
     };
