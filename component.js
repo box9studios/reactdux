@@ -95,12 +95,16 @@ const wrapComponent = (component, providers) => {
   );
 };
 
-class ReactduxBaseComponent extends Component {
+class Base extends Component {
   data = {};
   state = {};
   _dataSetters = {};
   _methodSetters = {};
   _stateSetters = {};
+  _unmounted = false;
+  componentWillUnmount() {
+    this._unmounted = true;
+  }
   setData(a, b) {
     if (typeof a === 'string') {
       return getSetter(this.setData.bind(this), this._dataSetters, a, b);
@@ -131,6 +135,9 @@ class ReactduxBaseComponent extends Component {
     if (typeof a === 'string') {
       return getSetter(this.setState.bind(this), this._stateSetters, a, b);
     }
+    if (this._unmounted) {
+      return;
+    }
     const callback = b ? () => b(this.state) : undefined;
     if (typeof a === 'function') {
       super.setState(a, callback);
@@ -145,7 +152,7 @@ export default (a, b) => {
     return createStyledComponent(a, b);
   }
   const config = getConfig(a, b);
-  const component = class ReactduxComponent extends ReactduxBaseComponent {
+  const component = class extends Base {
     constructor(initialProps) {
       const { data, init, props, render, state, ...rest } = config;
       super(initialProps);
@@ -167,7 +174,7 @@ export default (a, b) => {
         );
       }
     }
-    componentDidMount = () => {
+    componentDidMount() {
       const { componentDidMount, mount } = config;
       if (componentDidMount) {
         componentDidMount();
@@ -175,8 +182,9 @@ export default (a, b) => {
       if (mount) {
         mount.call(this, { ...this.props, ...this.state });
       }
-    };x
-    componentWillUnmount = () => {
+    }
+    componentWillUnmount() {
+      Base.prototype.componentWillUnmount.call(this);
       const { componentWillUnmount, unmount } = config;
       if (componentWillUnmount) {
         componentWillUnmount();
@@ -184,8 +192,8 @@ export default (a, b) => {
       if (unmount) {
         unmount.call(this, { ...this.props, ...this.state });
       }
-    };
-    componentDidUpdate = (prevProps, prevState) => {
+    }
+    componentDidUpdate(prevProps, prevState) {
       const { componentDidUpdate, state, update } = config;
       if (componentDidUpdate) {
         componentDidUpdate(prevProps, prevState);
@@ -204,8 +212,8 @@ export default (a, b) => {
           },
         );
       }
-    };
-    shouldComponentUpdate = (nextProps, nextState) => {
+    }
+    shouldComponentUpdate(nextProps, nextState) {
       const { should, shouldComponentUpdate }  = config;
       if (shouldComponentUpdate) {
         const r1 = shouldComponentUpdate(nextProps, nextState);
@@ -230,8 +238,8 @@ export default (a, b) => {
       }
       return !isEqual(this.props, nextProps)
         || !isEqual(this.state, nextState);
-    };
-    render = () => {
+    }
+    render() {
       const { render } = config;
       if (!render) {
         return null;
@@ -249,7 +257,7 @@ export default (a, b) => {
         return null;
       }
       return result;
-    };
+    }
   };
   component.defaultProps = config.props;
   return wrapComponent(component, config.container);
