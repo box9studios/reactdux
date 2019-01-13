@@ -1,6 +1,21 @@
-import { Component } from 'react';
+import React, { Component } from 'react';
 import createContainer from './container';
 import { copy, isEqual } from './utils';
+
+const createStyledComponent = (Component, styles) => props => {
+  const applyStyle = typeof styles === 'function'
+    ? styles(props)
+    : styles;
+  return (
+    <Component
+      {...props}
+      style={{
+        ...applyStyle,
+        ...props.style,
+      }}
+    />
+  );
+};
 
 const getCalculatedState = (stater, props, state) => {
   if (typeof stater === 'function') {
@@ -125,8 +140,11 @@ class ReactduxBaseComponent extends Component {
   }
 }
 
-export default (...args) => {
-  const config = getConfig(...args);
+export default (a, b) => {
+  if (b && typeof a === 'function') {
+    return createStyledComponent(a, b);
+  }
+  const config = getConfig(a, b);
   const component = class ReactduxComponent extends ReactduxBaseComponent {
     constructor(initialProps) {
       const { data, init, props, render, state, ...rest } = config;
