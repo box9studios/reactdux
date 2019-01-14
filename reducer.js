@@ -31,19 +31,14 @@ const getActors = (config, action) => {
     (result, args) => {
       const types = [...args];
       const handler = types.pop();
-      if (
-        types.find(type =>
-          type === action.type
-          || (type && type === action.__reactduxIdentity)
-        )
-      ) {
+      if (types.find(type => type === action.type)) {
         return [...result, handler];
       }
       return result;
     },
     [],
   );
-  if (action.__reactduxActionPathValue) {
+  if (action.__reactduxSpecialAction) {
     return [...actors, setPathValue];
   }
   return actors;

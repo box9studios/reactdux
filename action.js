@@ -1,21 +1,17 @@
 import { dispatch, isPromise } from './utils';
 
-const define = (obj, key, value) =>
-  Object.defineProperty(
-    obj,
-    `__reactdux${key}`,
-    { enumerable: false, value },
-  );
-
 const send = (type, payload, isSpecial) => {
   const action = { payload, type };
-  define(action, 'Identity', type);
-  define(action, 'ActionPathValue', isSpecial);
+  Object.defineProperty(
+    action,
+    '__reactduxSpecialAction',
+    { enumerable: false, value: isSpecial },
+  );
   dispatch(action);
   return action;
 };
 
-const getCreator = method => (...args) => method(...args);
+const getCreator = (method = () => {}) => (...args) => method(...args);
 
 const getCreatorForPath = (...args) => () => {
   const path = args.slice(0, -1);
@@ -29,9 +25,7 @@ export default (...args) => {
   const creator = target(...args);
   const method = (...args2) => {
     const payload = creator(...args2);
-    if (payload !== undefined) {
-      send(method, payload, isPathAction);
-    }
+    send(method, payload, isPathAction);
   };
   method.__isReactduxAction = true;
   if (isPathAction) {
