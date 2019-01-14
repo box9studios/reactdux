@@ -20,7 +20,6 @@ const getCreator = method => (...args) => method(...args);
 const getCreatorForPath = (...args) => () => {
   const path = args.slice(0, -1);
   const value = args[args.length - 1];
-  console.log({ path, value });
   return { path, value };
 };
 
