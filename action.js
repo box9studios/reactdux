@@ -1,43 +1,43 @@
 import { dispatch, isPromise } from './utils';
 
-const emptyPayloadCreator = function() { return arguments; };
+const define = (obj, key, value) =>
+  Object.defineProperty(
+    obj,
+    `__reactdux${key}`,
+    { enumerable: false, value },
+  );
 
-export default (...args1) => {
-  const firstArgIsString = typeof args1[0] === 'string';
-  const initialType = firstArgIsString ? args1[0] : undefined;
-  const payloadCreator = args1[firstArgIsString ? 1 : 0] || emptyPayloadCreator;
-  const effects = args1.slice(firstArgIsString ? 2 : 1, args1.length);
-  const wrapper = (...args2) => {
-    const type = (() => {
-      if (initialType) {
-        return initialType;
-      }
-      if (payloadCreator && payloadCreator.name) {
-        return payloadCreator.name;
-      }
-      return wrapper;
-    })();
-    const onPayload = payload => {
-      const error = payload ? payload.error : undefined;
-      const action = { error, payload, type };
-      Object.defineProperty(
-        action,
-        '__reactduxIdentity',
-        { value: wrapper },
-      );
-      dispatch(action);
-      if (effects.length) {
-        effects.forEach(effect => setTimeout(() => effect(payload)));
-      }
-      return action;
-    }
-    const payloadReturnValue = payloadCreator(...args2);
-    if (isPromise(payloadReturnValue)) {
-      return payloadReturnValue.then(onPayload);
-    } else if (payloadReturnValue !== undefined) {
-      return onPayload(payloadReturnValue);
+const send = (type, payload, isSpecial) => {
+  const action = { payload, type };
+  define(action, 'Identity', type);
+  define(action, 'ActionPathValue', isSpecial);
+  dispatch(action);
+  return action;
+};
+
+const getCreator = method => (...args) => method(...args);
+
+const getCreatorForPath = (...args) => () => {
+  const path = args.slice(0, -1);
+  const value = args[args.length - 1];
+  console.log({ path, value });
+  return { path, value };
+};
+
+export default (...args) => {
+  const isPathAction = args[0] && typeof args[0] !== 'function';
+  const target = isPathAction ? getCreatorForPath : getCreator;
+  const creator = target(...args);
+  const method = (...args2) => {
+    const payload = creator(...args2);
+    if (payload !== undefined) {
+      send(method, payload, isPathAction);
     }
   };
-  wrapper.__isReactduxAction = true;
-  return wrapper;
+  method.__isReactduxAction = true;
+  if (isPathAction) {
+    method();
+  } else {
+    return method;
+  }
 };
