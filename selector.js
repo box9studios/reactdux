@@ -6,60 +6,60 @@ import {
   isString,
 } from './utils';
 
-const getMethod = arg => {
-  if (isFunction(arg)) {
-    return arg;
+const containsFunction = args => {
+  for (let i = 0; i < args.length; i += 1) {
+    if (typeof args[i] === 'function') {
+      return true;
+    }
   }
-  const keys = (() => {
-    if (isString(arg)) {
-      return arg.split('.');
-    }
-    if (isArray(arg)) {
-      return arg;
-    }
-    return [];
-  })()
-  return state => {
-    let pointer = state;
-    for (let i = 0; i < keys.length; i += 1) {
-      try {
-        pointer = pointer[keys[i]];
-      } catch(error) {
-        return undefined;
-      }
-    }
-    return pointer;
-  };
+  return false;
 }
 
-const makeMethod = (...args) => {
-  if (args.length <= 1) {
-    return getMethod(args[0]);
+const getSelector = (...args) => {
+  if (containsFunction(args)) {
+    if (args.length === 1) {
+      return args[0];
+    }
+    return makeMemoizedSelector(args);
   }
+  return makePathSelector(args);
+};
+
+const makeMemoizedSelector = selectors => {
   let prevCalculation;
   let prevCalculators = [];
   return (...args2) => {
-    const nextCalculators = args
+    const nextCalculators = selectors
       .slice(0, -1)
       .reduce(
         (calculators, arg, index) => ([
           ...calculators,
-          getMethod(arg)(...args2),
+          arg(...args2),
         ]),
         [],
       );
     if (isEqual(nextCalculators, prevCalculators)) {
       return prevCalculation;
     }
-    const nextCalculation = args[args.length - 1](...nextCalculators);
+    const nextCalculation = selectors[selectors.length - 1](...nextCalculators);
     prevCalculators = nextCalculators;
     prevCalculation = nextCalculation;
     return nextCalculation;
   };
 };
 
+const makePathSelector = path => state => {
+  let pointer = state;
+  path.forEach(key => {
+    // try {
+      pointer = pointer[key];
+    // } catch (e) {}
+  });
+  return pointer;
+};
+
 export default (...args) => {
-  const method = makeMethod(...args);
+  const method = getSelector(...args);
   const selector = (...args2) => method(getState(), ...args2);
   selector.__isReactduxSelector = true;
   return selector;
