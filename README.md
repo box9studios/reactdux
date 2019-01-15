@@ -7,46 +7,44 @@ Simple React/Redux.
 
 ```js
 import { app } from 'reactdux';
-import reducer from './reducer';
-import middleware from './middleware';
 import Component from './component';
 
-app(Component, reducer, middleware);
+const state = {
+  name: 'Joe',
+  age: 25,
+  friends: [
+    { name: 'Pete', age: 31 },
+    { name: 'Sam', age: 37 },
+  ],
+};
+
+export default app(Component, state);
 ```
 
 ## Actions
 
 ```js
 import { action } from 'reactdux';
+import { getFriendsApiCall } from './api';
 
-// takes a method that returns a payload
-export const setAge = action(age => ({ age }));
-
-// takes a path that immediately acts on the reducer state
-export const setAge = age => action('age', age);
-```
-
-## Reducers
-
-```js
-import { reducer } from 'reactdux';
-import { setAge } from './actions';
-
-export default reducer(
-  {
-    name: 'Joe',
-    age: 25,
-    friends: [
-      { name: 'Pete', age: 31 },
-      { name: 'Sam', age: 37 },
-    ],
-  },
-  [
-    [setAge, payload => ({
-      age: payload.age,
-    })],
+// takes a reducer
+export const addFriend = action((state, age) => ({
+  friends: [
+    ...state.friends,
+    { name: 'John', age: 40 },
   ],
-);
+}));
+
+// ...or a path that generates a key/value setter
+export const setAge = action('age');
+
+// ...or an asynchronus method that fetches data
+export const fetchFriends = action(async state => {
+  state('loading', true);
+  const friends = await getFriendsApiCall();
+  state('loading', false);
+  state('friends', friends);
+});
 ```
 
 ## Selectors
@@ -56,10 +54,10 @@ import { selector } from 'reactdux';
 // takes a method that selects the value
 const selectName = selector(state => state.name);
 
-// takes a path that selects the value
+// ...or a path that selects the value
 const selectAge = selector('age');
 
-// takes a series of methods the last of which is
+// ...or a series of methods the last of which is
 // run only when the previous results change
 const selectFriendsOlderThanJoeSortedByAge = selector(
   state => state.friends,

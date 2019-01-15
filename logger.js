@@ -1,26 +1,22 @@
-const LINE_TEXT_LIMIT = 250;
+import { ellipsis } from './utils';
 
-const ellipsis = (text, limit) => {
-  if (text.length > limit) {
-    return `${text.substring(0, limit)}...`;
-  }
-  return text;
-};
+const DASHES = '----------------------';
 
-const getActionType = (action, definitions = {}) => {
-  const { __reactduxSpecialAction: special, type } = action;
-  if (typeof type === 'string') {
-    return type;
+const log = text => console.log(ellipsis(text, 100));
+
+const getActionType = (action = {}, actionExports = {}) => {
+  if (
+    typeof action.type === 'string'
+    && action.type !== 'ReactduxAction'
+  ) {
+    return action.type;
   }
-  if (special) {
-    return 'setKeyValue';
-  }
-  const name = Object.entries(definitions).find(([key, value]) => {
-    if (value === type) {
-      return key;
-    }
-  });
-  return name ? name[0] : 'unknown';
+  const method = action.type === 'ReactduxAction'
+    ? action.payload.method
+    : action.type;
+  const entry = Object.entries(actionExports)
+    .find(([key, value]) => value === method);
+  return entry ? entry[0] : 'anonymous';
 };
 
 const logStructure = target => {
@@ -28,30 +24,27 @@ const logStructure = target => {
     return;
   }
   if (typeof target === 'string') {
-    console.log(ellipsis(target, LINE_TEXT_LIMIT));
+    log(target, LIMIT);
   } else if (target !== null && typeof target === 'object') {
     Object.entries(target)
       .filter(([key, value]) => value !== undefined)
       .forEach(([key, value]) => {
         const output = typeof value === 'string'
-          ? ellipsis(value, LINE_TEXT_LIMIT)
+          ? ellipsis(value, LIMIT)
           : value;
-        console.log(`${key}:`, output);
+        log(`${key}:`, output);
       });
   } else {
-    console.log(target);
+    log(target);
   }
 };
 
-export default definitions =>
+export default (actionExports = {}) =>
   store =>
     next =>
       action => {
         next(action);
-        if (process.env.NODE_ENV === 'production') {
-          return;
-        }
-        console.groupCollapsed(`----------------------\n%c ACTION: ${getActionType(action, definitions)}\n----------------------`);
+        console.groupCollapsed(`${DASHES}\nACTION: ${getActionType(action, actionExports)}\n${DASHES}`);
         console.groupCollapsed('payload:');
         logStructure(action.payload);
         console.groupEnd();

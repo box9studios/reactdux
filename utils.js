@@ -1,6 +1,6 @@
 let store = null;
 
-export function copy(value) {
+export const copy = value => {
   if (!value) {
     return value;
   }
@@ -11,24 +11,28 @@ export function copy(value) {
     return [...value];
   }
   return value;
-}
+};
 
-export function dispatch(action) {
-  if (!store) {
-    throw new Error('no store found');
+export const dispatch = action => store.dispatch(action);
+
+export const ellipsis = (text = '', limit = -1) => {
+  if (limit === -1) {
+    return text;
   }
-  store.dispatch(action);
-}
+  if (text.length > limit) {
+    return `${text.substring(0, limit)}...`;
+  }
+  return text;
+};
 
-export function isArray(value) {
-  return value instanceof Array;
-}
+export const getState = () => store.getState();
 
-export function isArguments(value) {
-  return Object.prototype.toString.call(value) === '[object Arguments]';
-}
+export const isArray = value => value instanceof Array;
 
-export function isEqual(a, b) {
+export const isArguments = value =>
+  Object.prototype.toString.call(value) === '[object Arguments]';
+
+export const isEqual = (a, b) => {
   if (a === b) {
     return true;
   }
@@ -53,42 +57,12 @@ export function isEqual(a, b) {
     }
   }
   return true;
-}
-
-export function isFunction(value) {
-  return typeof value === 'function';
-}
-
-export function isPromise(value) {
-  return value instanceof Promise;
-}
-
-export function isString(value) {
-  return typeof value === 'string';
-}
-
-export function getState() {
-  if (!store) {
-    throw new Error('no store found');
-  }
-  return store.getState();
-}
-
-export function removeUndefinedKeys(obj) {
-  return Object.entries(obj).reduce(
-    (result, [key, value]) => {
-      if (value === undefined) {
-        return result;
-      }
-      return { ...result, [key]: value };
-    },
-    {},
-  );
 };
 
-export function setStore(nextStore) {
-  if (store) {
-    throw new Error('store already created');
-  }
-  store = nextStore;
-}
+export const isFunction = value => typeof value === 'function';
+
+export const isPromise = value => value instanceof Promise;
+
+export const isString = value => typeof value === 'string';
+
+export const setStore = value => store = value;

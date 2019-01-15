@@ -1,18 +1,22 @@
 import { createElement } from 'react';
-import { applyMiddleware, combineReducers, createStore } from 'redux';
+import { applyMiddleware, createStore } from 'redux';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
+import logger from './logger';
+import reducer from './reducer';
 import { setStore } from './utils';
+
+const PRODUCTION = process && process.env && process.env.NODE_ENV === 'production';
 
 export default (
   component,
-  reducer = {},
-  middleware = [],
+  state = {},
+  actionExports = {},
   target,
 ) => {
   const store = createStore(
-    reducer,
-    middleware.length ? applyMiddleware(...middleware) : undefined,
+    reducer(state),
+    PRODUCTION ? undefined : applyMiddleware(logger(actionExports)),
   );
   setStore(store);
   const element = () => createElement(

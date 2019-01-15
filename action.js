@@ -1,36 +1,72 @@
-import { dispatch, isPromise } from './utils';
+import { dispatch, getState, isPromise } from './utils';
 
-const send = (type, payload, isSpecial) => {
-  const action = { payload, type };
-  Object.defineProperty(
-    action,
-    '__reactduxSpecialAction',
-    { enumerable: false, value: isSpecial },
-  );
-  dispatch(action);
-  return action;
+const getActor = (...args) => {
+  if (typeof args[0] === 'function') {
+    return args[0];
+  }
+  return (state, ...args2) => state(...args, ...args2);
 };
 
-const getCreator = (method = () => {}) => (...args) => method(...args);
+const getTool = reducers => {
+  const method = (...args) => {
+    if (args.length < 1) {
+      return;
+    }
+    const path = args.slice(0, -1);
+    const value = args[args.length - 1];
+    reducers.push(state => setStatePathValue(state, path, value));
+  };
+  const state = getState();
+  Object.entries(state).forEach(([key, value]) => method[key] = value);
+  return method;
+};
 
-const getCreatorForPath = (...args) => () => {
-  const path = args.slice(0, -1);
-  const value = args[args.length - 1];
-  return { path, value };
+const setStatePathValue = (state, path, value) => {
+  let copy = {};
+  let ref;
+  path.forEach((key, index) => {
+    if (index === 0) {
+      copy[key] = { ...state[key] };
+      if (path.length == 1) {
+        ref = copy;
+      } else {
+        ref = copy[key];
+      }
+    } else if (index < path.length - 1) {
+      ref[key] = { ...ref[key] };
+      ref = ref[key];
+    }
+  });
+  if (value === undefined) {
+    delete ref[path[path.length - 1]];
+  } else if (typeof value === 'function') {
+    ref[path[path.length - 1]] = value(ref[path[path.length - 1]]);
+  } else {
+    ref[path[path.length - 1]] = value;
+  }
+  return copy;
 };
 
 export default (...args) => {
-  const isPathAction = args[0] && typeof args[0] !== 'function';
-  const target = isPathAction ? getCreatorForPath : getCreator;
-  const creator = target(...args);
-  const method = (...args2) => {
-    const payload = creator(...args2);
-    send(method, payload, isPathAction);
+  const method = async (...args2) => {
+    const reducers = [];
+    const actor = getActor(...args);
+    const changes = await actor(getTool(reducers), ...args2);
+    if (
+      !reducers.length
+      && changes
+      && typeof changes === 'object'
+    ) {
+      reducers.push(() => changes);
+    }
+    await dispatch({
+      payload: {
+        input: args2,
+        method,
+        reducers,
+      },
+      type: 'ReactduxAction',
+    });
   };
-  method.__isReactduxAction = true;
-  if (isPathAction) {
-    method();
-  } else {
-    return method;
-  }
+  return method;
 };
