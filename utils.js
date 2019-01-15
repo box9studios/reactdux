@@ -15,16 +15,6 @@ export const copy = value => {
 
 export const dispatch = action => store.dispatch(action);
 
-export const ellipsis = (text = '', limit = -1) => {
-  if (limit === -1) {
-    return text;
-  }
-  if (text.length > limit) {
-    return `${text.substring(0, limit)}...`;
-  }
-  return text;
-};
-
 export const getState = () => store.getState();
 
 export const isArray = value => value instanceof Array;

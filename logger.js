@@ -1,8 +1,4 @@
-import { ellipsis } from './utils';
-
 const DASHES = '----------------------';
-
-const log = text => console.log(ellipsis(text, 100));
 
 const getActionType = (action = {}, actionExports = {}) => {
   if (
@@ -19,23 +15,12 @@ const getActionType = (action = {}, actionExports = {}) => {
   return entry ? entry[0] : 'anonymous';
 };
 
-const logStructure = target => {
-  if (target === undefined) {
-    return;
-  }
-  if (typeof target === 'string') {
-    log(target, LIMIT);
-  } else if (target !== null && typeof target === 'object') {
-    Object.entries(target)
-      .filter(([key, value]) => value !== undefined)
-      .forEach(([key, value]) => {
-        const output = typeof value === 'string'
-          ? ellipsis(value, LIMIT)
-          : value;
-        log(`${key}:`, output);
-      });
+const log = target => {
+  if (target && typeof target === 'object') {
+    Object.entries(target).forEach(([key, value]) =>
+      console.log(`${key}:`, value));
   } else {
-    log(target);
+    console.log(target);
   }
 };
 
@@ -46,10 +31,10 @@ export default (actionExports = {}) =>
         next(action);
         console.groupCollapsed(`${DASHES}\nACTION: ${getActionType(action, actionExports)}\n${DASHES}`);
         console.groupCollapsed('payload:');
-        logStructure(action.payload);
+        log(action.payload);
         console.groupEnd();
         // console.groupCollapsed('state:');
-        // logStructure(store.getState());
+        // log(store.getState());
         // console.groupEnd();
         console.groupEnd();
       };
