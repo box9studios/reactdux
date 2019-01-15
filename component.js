@@ -247,11 +247,7 @@ export default (a, b) => {
       const result = render.call(
         this,
         { ...this.props, ...this.state },
-        {
-          setData: this.setData.bind(this),
-          setMethod: this.setMethod.bind(this),
-          setState: this.setState.bind(this),
-        },
+        this.setState.bind(this),
       );
       if (result === undefined) {
         return null;
