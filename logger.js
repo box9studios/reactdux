@@ -1,4 +1,3 @@
-const ERROR_COLOR = '#ff7676';
 const LINE_TEXT_LIMIT = 250;
 
 const ellipsis = (text, limit) => {
@@ -8,26 +7,20 @@ const ellipsis = (text, limit) => {
   return text;
 };
 
-const getActionType = (action, definitions) => {
-  const { type } = action;
+const getActionType = (action, definitions = {}) => {
+  const { __reactduxSpecialAction: special, type } = action;
   if (typeof type === 'string') {
     return type;
   }
-  if (definitions) {
-    for (const key in definitions) {
-      if (definitions[key] === type) {
-        return key;
-      }
+  if (special) {
+    return 'setKeyValue';
+  }
+  const name = Object.entries(definitions).find(([key, value]) => {
+    if (value === type) {
+      return key;
     }
-  }
-  return '(anonymous)';
-};
-
-const getStyle = action => {
-  if (action.payload && action.payload.error) {
-    return `color: ${ERROR_COLOR}`;
-  }
-  return '';
+  });
+  return name ? name[0] : 'unknown';
 };
 
 const logStructure = target => {
@@ -58,22 +51,12 @@ export default definitions =>
         if (process.env.NODE_ENV === 'production') {
           return;
         }
-        console.groupCollapsed(
-          `%c ACTION: ${getActionType(action, definitions)}`,
-          getStyle(action),
-        );
-        if (action.payload !== undefined) {
-          console.groupCollapsed('payload');
-          logStructure(action.payload);
-          console.groupEnd();
-        }
-        if (action.error !== undefined) {
-          console.groupCollapsed('error');
-          console.log(action.error);
-          console.groupEnd();
-        }
-        console.groupCollapsed('state');
-        logStructure(store.getState());
+        console.groupCollapsed(`----------------------\n%c ACTION: ${getActionType(action, definitions)}\n----------------------`);
+        console.groupCollapsed('payload:');
+        logStructure(action.payload);
         console.groupEnd();
+        // console.groupCollapsed('state:');
+        // logStructure(store.getState());
+        // console.groupEnd();
         console.groupEnd();
       };

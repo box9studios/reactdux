@@ -140,7 +140,16 @@ class Base extends Component {
     }
     const callback = b ? () => b(this.state) : undefined;
     if (typeof a === 'function') {
-      super.setState(a, callback);
+      super.setState(
+        state => {
+          const changes = a(state);
+          if (!isEqualState(state, change)) {
+            return changes;
+          }
+          return {};
+        },
+        callback,
+      );
     } else if (!isEqualState(this.state, a)) {
       super.setState(a, callback);
     }
