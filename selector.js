@@ -27,22 +27,23 @@ const getSelector = (...args) => {
 
 const makeMemoizedSelector = selectors => {
   let prevCalculation;
-  let prevCalculators = [];
+  let prevComputations = [];
   return (...args2) => {
-    const nextCalculators = selectors
-      .slice(0, -1)
-      .reduce(
-        (calculators, arg, index) => ([
-          ...calculators,
-          arg(...args2),
-        ]),
-        [],
-      );
-    if (isEqual(nextCalculators, prevCalculators)) {
+    const computers = selectors.slice(0, -1);
+    const calculator = selectors[selectors.length - 1];
+    const inputs = args2.slice(1);
+    const newComputations = computers.reduce(
+      (calculators, arg, index) => ([
+        ...calculators,
+        arg(...args2),
+      ]),
+      [],
+    );
+    if (isEqual(newComputations, prevComputations)) {
       return prevCalculation;
     }
-    const nextCalculation = selectors[selectors.length - 1](...nextCalculators);
-    prevCalculators = nextCalculators;
+    const nextCalculation = calculator(...newComputations, ...inputs);
+    prevComputations = newComputations;
     prevCalculation = nextCalculation;
     return nextCalculation;
   };
@@ -50,11 +51,7 @@ const makeMemoizedSelector = selectors => {
 
 const makePathSelector = path => state => {
   let pointer = state;
-  path.forEach(key => {
-    // try {
-      pointer = pointer[key];
-    // } catch (e) {}
-  });
+  path.forEach(key => pointer = pointer[key])
   return pointer;
 };
 

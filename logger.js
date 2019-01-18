@@ -1,18 +1,19 @@
-const DASHES = '----------------------';
+import { getAction } from './utils';
+
+const DASHES = '--------------------------------------------';
 
 const getActionType = (action = {}, actionExports = {}) => {
-  if (
-    typeof action.type === 'string'
-    && action.type !== 'ReactduxAction'
-  ) {
-    return action.type;
+  const getExportAction = method => (Object.entries(actionExports)
+    .find(([key, value]) => value === method) || {})[0] || '';
+  const exportAction = getExportAction(action.type);
+  if (exportAction) {
+    return exportAction;
   }
-  const method = action.type === 'ReactduxAction'
-    ? action.payload.method
-    : action.type;
-  const entry = Object.entries(actionExports)
-    .find(([key, value]) => value === method);
-  return entry ? entry[0] : 'anonymous';
+  if (action.__reactduxAction) {
+    const found = getExportAction(action.payload.method) || getExportAction(getAction());
+    return `${found} (${action.type})`;
+  }
+  return action.type || 'AnonymousAction';
 };
 
 const log = target => {
@@ -28,13 +29,17 @@ export default (actionExports = {}) =>
   store =>
     next =>
       action => {
-        next(action);
         console.groupCollapsed(`${DASHES}\nACTION: ${getActionType(action, actionExports)}\n${DASHES}`);
         console.groupCollapsed('payload:');
         log(action.payload);
         console.groupEnd();
+        next(action);
+        // console.groupCollapsed('diff:');
+        // log(store.getState());
+        // console.groupEnd();
+        // console.groupEnd();
         // console.groupCollapsed('state:');
         // log(store.getState());
         // console.groupEnd();
-        console.groupEnd();
+        // console.groupEnd();
       };

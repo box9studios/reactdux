@@ -1,4 +1,4 @@
-import { dispatch, getState, isPromise } from './utils';
+import { addAction, getState, isPromise, removeAction, setState } from './utils';
 
 const getActor = (...args) => {
   if (typeof args[0] === 'function') {
@@ -49,6 +49,7 @@ const setStatePathValue = (state, path, value) => {
 
 export default (...args) => {
   const method = async (...args2) => {
+    addAction(method);
     const reducers = [];
     const actor = getActor(...args);
     const changes = await actor(getTool(reducers), ...args2);
@@ -59,14 +60,12 @@ export default (...args) => {
     ) {
       reducers.push(() => changes);
     }
-    await dispatch({
-      payload: {
-        input: args2,
-        method,
-        reducers,
-      },
-      type: 'ReactduxAction',
-    });
+    try {
+      setState('ReactduxActionSetState', reducers, ...args2);
+      removeAction(method);
+    } catch (error) {
+      removeAction(method);
+    }
   };
   return method;
 };
