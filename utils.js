@@ -3,84 +3,79 @@ let actions = [];
 
 export const addAction = action => actions.push(action);
 
-export const clone = obj => {
-  if (!obj || typeof obj !== 'object') {
-    return obj;
-  }
-  return JSON.parse(JSON.stringify(obj));
-};
-
-const convertPaths = (paths = [], reverse = false) => {
-  const fullPaths = paths.map(item => {
-    if (
-      typeof item === 'number'
-      || typeof item === 'string'
-    ) {
-      return [item];
-    }
-    if (item instanceof Array) {
-      return item;
-    }
-    return [];
-  });
-  if (reverse) {
-    return [...fullPaths].reverse();
-  }
-  return fullPaths;
-};
-
 export const copy = value => {
   if (!value) {
     return value;
   }
-  if (value.constructor === Object) {
+  if (value instanceof Array) {
+    return [...value];
+  }
+  if (typeof value === 'object') {
     return { ...value };
   }
-  if (value.constructor === Array) {
-    return [...value];
+  if (typeof value === 'function') {
+    return (...args) => value(...args);
   }
   return value;
 };
 
-export const dehydrate = (target = {}, paths = []) => {
-  let copy = clone(target);
-  const source = {};
-  convertPaths(paths).forEach(path => {
-    if (path.length === 1) {
-      const key = path[0];
-      const id = copy[key];
-      source[id] = copy;
-      copy = id;
-    } else {
-      let ref = copy;
-      path.forEach((key, index) => {
-        if (index === path.length - 2) {
-          const idKey = path[path.length - 1];
-          const pathValue = ref[key];
-          if (pathValue instanceof Array) {
-            const ids = pathValue.map(pathValueItem => pathValueItem[idKey]);
-            pathValue.forEach(pathValueItem => {
-              const id = pathValueItem[idKey];
-              source[id] = pathValueItem;
-            });
-            ref[key] = ids;
-          } else {
-            const id = pathValue[idKey];
-            source[id] = pathValue;
-            ref[key] = id;
-          }
-        } else if (index < path.length - 2) {
-          ref = ref[key];
-        }
-      });
+export const dehydrate = (target, paths = []) => {
+  const data = {}
+  const convert = (value, path) => {
+    if (value === null || value === undefined) {
+      return value;
     }
+    if (path.length <= 1) {
+      const key = path[0];
+      if (value instanceof Array) {
+        const ids = [];
+        value.forEach(item => {
+          const id = item[key];
+          ids.push(id);
+          data[id] = item;
+        });
+        return ids;
+      } else {
+        const id = value[key];
+        data[id] = value;
+        return id;
+      }
+    }
+    const isMulti = value instanceof Array;
+    const items = isMulti ? value : [value];
+    const mapped = items.map(item => {
+      if (!item) {
+        return item;
+      }
+      const key = path[0];
+      return {
+        ...item,
+        [key] : convert(item[key], path.slice(1)),
+      };
+    });
+    return isMulti ? mapped : mapped[0];
+  };
+  let result = target;
+  paths.forEach(path => {
+    result = convert(result, path);
   });
-  return { value: copy, data: source };
+  return { data, value: result };
 };
 
 export const dispatch = action => store.dispatch(action);
 
 export const getAction = () => actions[0];
+
+export const getObjectPathValue = (obj, ...path) => {
+  let result = obj;
+  for (const key of path) {
+    if (result === null || result === undefined) {
+      break;
+    }
+    result = result[key];
+  }
+  return result;
+};
 
 export const getState = key => {
   if (key !== undefined) {
@@ -89,36 +84,36 @@ export const getState = key => {
   return store.getState();
 };
 
-export const hydrate = (target, paths = [], source = {}) => {
-  if (!target || typeof target !== 'object') {
-    return clone(source[target]);
-  }
-  let copy = clone(target);
-  convertPaths(paths, true).forEach(path => {
-    if (path.length === 1) {
-      const id = copy;
-      if (id instanceof Array) {
-        copy = id.map(item => clone(source[item]));
-      } else {
-        copy = clone(source[id]);
-      }
-    } else {
-      let ref = copy;
-      path.forEach((key, index) => {
-        if (index === path.length - 2) {
-          const id = ref[key];
-          if (id instanceof Array) {
-            ref[key] = id.map(item => clone(source[item]));
-          } else {
-            ref[key] = clone(source[id]);
-          }
-        } else if (index < path.length - 2) {
-          ref = ref[key];
-        }
-      });
+export const hydrate = (target, paths = [], data = {}) => {
+  const convert = (value, path) => {
+    if (value === null || value === undefined) {
+      return value;
     }
+    if (path.length <= 1) {
+      if (value instanceof Array) {
+        return value.map(id => data[id]);
+      }
+      return data[value];
+    }
+    const isMulti = value instanceof Array;
+    const items = isMulti ? value : [value];
+    const mapped = items.map(item => {
+      if (!item) {
+        return item;
+      }
+      const key = path[0];
+      return {
+        ...item,
+        [key] : convert(item[key], path.slice(1)),
+      };
+    });
+    return isMulti ? mapped : mapped[0];
+  };
+  let result = target;
+  [...paths].reverse().forEach(path => {
+    result = convert(result, path);
   });
-  return copy;
+  return result;
 };
 
 export const isArray = value => value instanceof Array;

@@ -1,68 +1,38 @@
 import {
   dehydrate,
   dispatch,
-  clone,
+  getObjectPathValue,
   getState,
   hydrate,
   setState,
 } from './utils';
 
-const MARKER = `_${Math.ceil(Math.random() * 100000000)}`;
+const MARKER = Math.random() * 1000000000000000000;
 
-let cachedMapperKeys = new Map();
 let isDummyTransforming = false;
 let isHydratorRunning = false;
 let mostRecentData = {};
 let topTransfromRunning = false;
 
-const getMarker = value => !!value && !!value[MARKER];
-
-const getPathValue = (obj, ...path) => {
-  let result = obj;
-  for (const key of path) {
-    if (result === null || result === undefined) {
-      break;
-    }
-    result = result[key];
-  }
-  return result;
-};
-
-const getTransformerMappers = transformer => {
-  const cached = cachedMapperKeys.get(transformer);
-  if (cached) {
-    return cached;
-  }
-  isDummyTransforming = true;
-  const dummy = transform(transformer)();
-  isDummyTransforming = false;
-  const mappers = [];
-  for (const key in dummy) {
-    const value = dummy[key];
-    if (getMarker(value)) {
-      mappers.push(key);
+const getHydratePaths = transformer => {
+  const paths = [['id']];
+  const addPaths = (nextTransformer, path = []) => {
+    isDummyTransforming = true;
+    const nextResults = nextTransformer();
+    isDummyTransforming = false;
+    const result = nextResults instanceof Array ? nextResults[0] : nextResults;
+    if (result && typeof result === 'object') {
+      Object.entries(result).forEach(([key, value]) => {
+        const nestedTransformer = value && value[MARKER];
+        if (nestedTransformer) {
+          paths.push([...path, key, 'id']);
+          addPaths(nestedTransformer, [...path, key]);
+        }
+      });
     }
   }
-  cachedMapperKeys.set(transformer, mappers);
-  return mappers;
-};
-
-const getWrappedTransformer = transformer => input => {
-  const get = (...args) => getPathValue(input, ...args);
-  try {
-    return transformer(get);
-  } catch (e) {
-    return input;
-  }
-};
-
-const setMarker = value => {
-  Object.defineProperty(
-    value,
-    MARKER,
-    { enumerable: false, value: 1 },
-  );
-  return value;
+  addPaths(transformer);
+  return paths.reverse();
 };
 
 const runDehydrate = (value, transformer) => {
@@ -75,7 +45,7 @@ const runDehydrate = (value, transformer) => {
   const list = isList ? value : [value];
   const values = list
     .map(transformer)
-    .map(item => dehydrate(item, ['id']))
+    .map(item => dehydrate(item, [['id']]))
     .map(dehydrateResult => {
         mostRecentData = {
           ...mostRecentData,
@@ -97,62 +67,25 @@ const runDehydrate = (value, transformer) => {
 };
 
 const runHydrate = (value, data, transformer) => {
-  const hydrated = hydrate(value, ['id'], data);
-  if (!hydrated) {
-    return value;
-  }
-  const mappers = getTransformerMappers(transformer);
-  mappers.forEach(key => {
-    if (hydrated instanceof Array) {
-      hydrated.forEach(item => {
-        const val = item[key];
-        if (val instanceof Array) {
-          item[key] = val.map(id => clone(data[id]))
-        } else {
-          item[key] = clone(data[val])
-        }
-      });
-    } else  {
-      const val = hydrated[key];
-      if (val instanceof Array) {
-        hydrated[key] = val.map(id => clone(data[id]))
-      } else {
-        hydrated[key] = clone(data[val]);
-      }
-    }
-  });
-  return hydrated;
+  const paths = getHydratePaths(transformer);
+  return hydrate(value, paths, data);
 };
 
-export const transform = transformer => (value, data) => {
-  const wrappedTransformer = getWrappedTransformer(transformer);
-  if (isDummyTransforming) {
-    const result = wrappedTransformer({});
-    return setMarker(result);
-  }
-  if (!isHydratorRunning) {
-    return wrappedTransformer(value);
-  }
-  if (data) {
-    return runHydrate(value, data, wrappedTransformer);
-  }
-  return runDehydrate(value, wrappedTransformer);
+const setMarker = (value, transformer) => {
+  Object.defineProperty(
+    value,
+    MARKER,
+    { enumerable: false, value: transformer },
+  );
+  return value;
 };
 
-export const hydrater = (dehydratedValue, transformer) => {
-  const data = getState('data') || {};
-  isHydratorRunning = true;
-  const result = transformer(dehydratedValue, data);
-  isHydratorRunning = false;
-  return result;
-};
-
-export const dehydrater = (hydratedValue, transformer) => {
+const transformDehydrator = (hydratedValue, transformer) => {
   isHydratorRunning = true;
   const { data, value } = transformer(hydratedValue);
   isHydratorRunning = false;
   setState(
-    'ReactduxDehydrateSetData',
+    'ReactduxDehydrateAction',
     state => ({
       data: {
         ...state.data,
@@ -164,4 +97,39 @@ export const dehydrater = (hydratedValue, transformer) => {
   return value;
 };
 
-export default transform;
+const transformHydrator = (dehydratedValue, transformer) => {
+  const data = getState('data') || {};
+  isHydratorRunning = true;
+  const result = transformer(dehydratedValue, data);
+  isHydratorRunning = false;
+  return result;
+};
+
+const wrapTransformer = transformer => (input = {}) => {
+  const get = (...args) => getObjectPathValue(input, ...args);
+  try {
+    return transformer(get);
+  } catch (e) {
+    return input;
+  }
+};
+
+export default input => {
+  const method = (value, data) => {
+    const transformer = wrapTransformer(input);
+    if (isDummyTransforming) {
+      const result = transformer();
+      return setMarker(result, transformer);
+    }
+    if (!isHydratorRunning) {
+      return transformer(value);
+    }
+    if (data) {
+      return runHydrate(value, data, transformer);
+    }
+    return runDehydrate(value, transformer);
+  };
+  method.dehydrate = value => transformDehydrator(value, method);
+  method.hydrate = value => transformHydrator(value, method);
+  return method;
+};;
