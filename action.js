@@ -33,7 +33,11 @@ const setStatePathValue = (state, path, value) => {
         ref = copy[key];
       }
     } else if (index < path.length - 1) {
-      ref[key] = { ...ref[key] };
+      if (ref[key] instanceof Array) {
+        ref[key] = [...ref[key]];
+      } else if (typeof ref[key] === 'object') {
+        ref[key] = { ...ref[key] };
+      }
       ref = ref[key];
     }
   });
