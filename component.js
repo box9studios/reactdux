@@ -143,7 +143,7 @@ class Base extends Component {
       super.setState(
         state => {
           const changes = a(state);
-          if (!isEqualState(state, change)) {
+          if (!isEqualState(state, changes)) {
             return changes;
           }
           return {};
