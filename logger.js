@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const DASHES = '----------------------';
 
 const getActionType = (action = {}, actionExports = {}) => {
@@ -10,9 +11,9 @@ const getActionType = (action = {}, actionExports = {}) => {
   const method = action.type === 'ReactduxAction'
     ? action.payload.method
     : action.type;
-  const entry = Object.entries(actionExports)
-    .find(([key, value]) => value === method);
-  return entry ? entry[0] : 'anonymous';
+  const type = Object.keys(actionExports)
+    .find(key => actionExports[key] === method);
+  return type || 'anonymous';
 };
 
 const getObjectDiff = (a = {}, b = {}) => {

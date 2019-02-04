@@ -1,0 +1,26 @@
+{
+  "env": {
+    "amd": true,
+    "browser": true,
+    "es6": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended"
+  ],
+  "parser": "babel-eslint",
+  "plugins": [
+    "react",
+    "import",
+    "async-await"
+  ],
+  "rules": {
+    "react/display-name": 0,
+    "react/prop-types": 0
+  },
+  "settings": {
+    "react": {
+      "version": "16.0"
+    }
+  }
+}

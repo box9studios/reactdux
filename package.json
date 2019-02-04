@@ -7,6 +7,13 @@
     "redux": "^4.0.0"
   },
   "description": "Simple React/Redux.",
+  "devDependencies": {
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.13.0",
+    "eslint-plugin-async-await": "0.0.0",
+    "eslint-plugin-import": "^2.16.0",
+    "eslint-plugin-react": "^7.12.4"
+  },
   "engines": {
     "node": "^10.6.0",
     "npm": "^6.1.0"
@@ -28,6 +35,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/stevebinder/reactdux"
+  },
+  "scripts": {
+    "lint": "eslint ./ --ext js"
   },
   "version": "2.2.3"
 }
