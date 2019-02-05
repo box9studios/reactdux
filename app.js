@@ -4,9 +4,7 @@ import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 import logger from './logger';
 import reducer from './reducer';
-import { setStore } from './utils';
-
-const PRODUCTION = process && process.env && process.env.NODE_ENV === 'production';
+import { isProduction, setStore } from './utils';
 
 export default (
   component,
@@ -16,7 +14,7 @@ export default (
 ) => {
   const store = createStore(
     reducer(state),
-    PRODUCTION ? undefined : applyMiddleware(logger(actionExports)),
+    isProduction ? undefined : applyMiddleware(logger(actionExports)),
   );
   setStore(store);
   const element = () => createElement(

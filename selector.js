@@ -1,10 +1,4 @@
-import {
-  getState,
-  isArray,
-  isEqual,
-  isFunction,
-  isString,
-} from './utils';
+import { getState, isEqual } from './utils';
 
 const containsFunction = args => {
   for (let i = 0; i < args.length; i += 1) {
@@ -33,7 +27,7 @@ const makeMemoizedSelector = selectors => {
     const calculator = selectors[selectors.length - 1];
     const inputs = args2.slice(1);
     const newComputations = computers.reduce(
-      (calculators, arg, index) => ([
+      (calculators, arg) => ([
         ...calculators,
         arg(...args2),
       ]),

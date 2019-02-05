@@ -150,6 +150,15 @@ export const isEqual = (a, b) => {
 
 export const isFunction = value => typeof value === 'function';
 
+export const isProduction = (() => {
+  try {
+    // eslint-disable-next-line no-undef
+    return process.env.NODE_ENV === 'production';
+  } catch (event) {
+    return false;
+  }
+})();
+
 export const isPromise = value => value instanceof Promise;
 
 export const isString = value => typeof value === 'string';

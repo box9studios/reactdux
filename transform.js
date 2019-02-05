@@ -1,6 +1,5 @@
 import {
   dehydrate,
-  dispatch,
   getObjectPathValue,
   getState,
   hydrate,
@@ -132,4 +131,4 @@ export default input => {
   method.dehydrate = value => transformDehydrator(value, method);
   method.hydrate = value => transformHydrator(value, method);
   return method;
-};;
+};

@@ -72,7 +72,7 @@ const getSetter = (method, obj, key, value) => {
     } else {
       obj[id] = () => method({ [key]: value });
     }
-  };
+  }
   return obj[id];
 };
 
@@ -163,6 +163,7 @@ export default (a, b) => {
   const config = getConfig(a, b);
   const component = class extends Base {
     constructor(initialProps) {
+      // eslint-disable-next-line no-unused-vars
       const { data, init, props, render, state, ...rest } = config;
       super(initialProps);
       if (data !== undefined) {
@@ -203,7 +204,7 @@ export default (a, b) => {
       }
     }
     componentDidUpdate(prevProps, prevState) {
-      const { componentDidUpdate, state, update } = config;
+      const { componentDidUpdate, update } = config;
       if (componentDidUpdate) {
         componentDidUpdate(prevProps, prevState);
       }

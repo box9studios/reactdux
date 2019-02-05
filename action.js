@@ -1,4 +1,9 @@
-import { addAction, getState, isPromise, removeAction, setState } from './utils';
+import {
+  addAction,
+  getState,
+  removeAction,
+  setState,
+} from './utils';
 
 const getActor = (...args) => {
   if (typeof args[0] === 'function') {

@@ -18,15 +18,12 @@ const getNextState = (
   { ...state },
 );
 
-const getReducers = (config = []) => config.reduce(
+const getReducers = (action, config = []) => config.reduce(
   (result, configItem) => {
     const actions = configItem.slice(0, -1);
-    const hander = configItem[configItem.length - 1];
+    const handler = configItem[configItem.length - 1];
     if (actions.find(item => item === action.type)) {
-      return [
-        ...result,
-        handler,
-      ];
+      return [...result, handler];
     }
     return result;
   },
@@ -35,6 +32,6 @@ const getReducers = (config = []) => config.reduce(
 
 export default (defaultState = {}, config = []) =>
   (state = defaultState, action = {}) => {
-    const reducers = action.__reactduxAction || getReducers(config);
+    const reducers = action.__reactduxAction || getReducers(action, config);
     return getNextState(state, action, reducers);
   };
