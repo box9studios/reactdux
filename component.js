@@ -65,16 +65,23 @@ const getConfig = (a, b) => {
 };
 
 const getSetter = (method, obj, key, value) => {
-  const id = JSON.stringify({ key, value });
+  const id = getSetterKey(key, value);
   if (!obj[id]) {
     if (value === undefined) {
-      obj[id] = innerValue => method({ [key]: innerValue });
+      obj[id] = invokedValue => method({ [key]: invokedValue });
+    } else if (typeof value === 'function') {
+      obj[id] = () => method(lookup => ({ [key]: value(lookup[key]) }));
     } else {
       obj[id] = () => method({ [key]: value });
     }
   }
   return obj[id];
 };
+
+const getSetterKey = (...args) => JSON.stringify(args.reduce(
+  (result, item) => ([ ...result, `${item}` ]),
+  [],
+));
 
 const isEqualState = (state, changes) => {
   for (const key in changes) {
