@@ -17,6 +17,12 @@ const getTool = reducers => {
     if (args.length < 1) {
       return;
     }
+    if (
+      args.length === 1
+      && typeof args[0] === 'object'
+    ) {
+      return reducers.push(() => args[0]);
+    }
     const path = args.slice(0, -1);
     const value = args[args.length - 1];
     reducers.push(state => setStatePathValue(state, path, value));
