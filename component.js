@@ -103,12 +103,17 @@ const wrapComponent = (component, providers) => {
 };
 
 class Base extends Component {
-  data = {};
-  state = {};
-  _dataSetters = {};
-  _methodSetters = {};
-  _stateSetters = {};
-  _unmounted = false;
+
+  constructor(props) {
+    super(props);
+    this.data = {};
+    this.state = {};
+    this._dataSetters = {};
+    this._methodSetters = {};
+    this._stateSetters = {};
+    this._unmounted = false;
+  }
+
   componentWillUnmount() {
     this._unmounted = true;
   }
