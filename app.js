@@ -31,7 +31,7 @@ export default (
   } else if (window && window.document) {
     const container = document.createElement('div');
     render(element(), container);
-    document.body.appendChild(container);
+    setTimeout(() => document.body.appendChild(container));
   }
   return element;
 };
