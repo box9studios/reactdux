@@ -1,6 +1,6 @@
 # Reactdux
 
-Simple React/Redux.
+Helpful functions for React applications.
 
 
 ## App
@@ -112,4 +112,37 @@ export default component({
     );
   },
 });
+```
+
+## Context
+
+```js
+import { context } from 'reactdux';
+
+const Person = context(
+  { name: 'Paul', age: 28, friends: [] },
+  {
+    changeName: () => ({ name: 'Sue' })
+    getOlder: state => ({ age: state.age + 1 }),
+    makeFriends: async () => {
+      const friends = fetchFriends();
+      return { friends };
+    },
+  },
+);
+
+export default () => (
+  <Person.Provider>
+    <div>
+      <Person.Consumer>
+        {({ name, age, getOlder }) => (
+          <div>
+            <div>{name} is {age} years old.</div>
+            <button onClick={getOlder}>Age</button>
+          </div>
+        )}
+      </Person.Consumer>
+    </div>
+  </Person.Provider>
+);
 ```

@@ -1,8 +1,8 @@
 {
   "author": "Steve Binder <email@stevebinder.com>",
   "dependencies": {
-    "react": "^16.0.0",
-    "react-dom": "^16.0.0",
+    "react": "^16.5.0",
+    "react-dom": "^16.5.0",
     "react-redux": "^5.0.0",
     "redux": "^4.0.0"
   },
@@ -39,5 +39,5 @@
   "scripts": {
     "lint": "eslint ./ --ext js"
   },
-  "version": "2.6.0"
+  "version": "2.7.0"
 }

@@ -14,7 +14,12 @@ export default (defaultState = null, actionConfig = {}) => {
     const actions = Object.entries(actionConfig).reduce(
       (result, [name, method]) => ({
         ...result,
-        [name]: (...args) => method(stateTool, ...args),
+        [name]: (...args) => {
+          const result = method(stateTool, ...args);
+          if (result !== undefined) {
+            stateTool(result);
+          }
+        },
       }),
       {},
     );
