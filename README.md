@@ -13,8 +13,8 @@ const state = {
   name: 'Joe',
   age: 25,
   friends: [
-    { name: 'Pete', age: 31 },
-    { name: 'Sam', age: 37 },
+    { name: 'Pete', age: 26 },
+    { name: 'Sam', age: 27 },
   ],
 };
 
@@ -25,25 +25,22 @@ export default app(Component, state);
 
 ```js
 import { action } from 'reactdux';
-import { getFriendsApiCall } from './api';
+import { fetcFriends } from './api';
 
-// takes a reducer
-export const addFriend = action((state, age) => ({
+export const addFriend = action((state, name, age) => ({
   friends: [
     ...state.friends,
-    { name: 'John', age: 40 },
+    { name, age },
   ],
 }));
 
-// ...or a path that generates a key/value setter
-export const setAge = action('age');
-
-// ...or an asynchronus method that fetches data
-export const fetchFriends = action(async state => {
-  state('loading', true);
-  const friends = await getFriendsApiCall();
-  state('loading', false);
-  state('friends', friends);
+export const getFriends = action(async state => {
+  state({ loading: true });
+  const friends = await fetchFriends();
+  state({
+    loading: false,
+    friends,
+  });
 });
 ```
 
@@ -51,44 +48,31 @@ export const fetchFriends = action(async state => {
 ```js
 import { selector } from 'reactdux';
 
-// takes a method that selects the value
-const selectName = selector(state => state.name);
+const selectFriend = selector((state, id) =>
+  state.friends.find(friend => friend.id === id));
 
-// ...or a path that selects the value
-const selectAge = selector('age');
-
-// ...or a series of methods the last of which is
-// run only when the previous results change
-const selectFriendsOlderThanJoeSortedByAge = selector(
-  state => state.friends,
+const selectOlderFriends = selector(
   state => state.age,
-  (friends, age) =>
-    friends
-      .filter(friend => friend.age >= age)
-      .sort((a, b) => b.age - a.age),
+  state => state.friends,
+  (age, friends) => friends
+    .filter(friend => friend.age >= age),
 );
 ```
 
 ## Containers
 ```js
 import { container } from 'reactdux';
-import { setAge } from './actions';
-import { withAge } from './providers';
+import { withFriends } from './hocs';
 import { selectFriends } from './selectors';
 
 export default container(
-  // takes a provider or hoc
-  withAge,
-  // ...or an object with mapped selectors
+  withFriends,
   {
     friends: selectFriends,
-    setAge,
   },
-  // ...or a prop-mapper
   props => ({
     retired: props.age >= 65,
   }),
-  // ...and wraps the component from top to bottom
   Component,
 );
 ```
@@ -97,62 +81,35 @@ export default container(
 ```js
 import React from 'react';
 import { component } from 'reactdux';
+import { addFriend } from './actions';
 
 export default component({
-  // set default props
   props: {
     age: 1,
-    setAge() {},
     friends: [],
     retired: false,
   },
-  // set initial state
   state: {
     breaths: 0,
-    message: '',
   },
   mount() {
-    this.timer = setInterval(
-      () => this.setState({ breaths: this.state.breaths + 1}),
-      1000,
-    );
+    this.timer = setInterval(this.onBreathe, 1000);
   },
   unmount() {
     clearInterval(this.timer);
   },
-  update(prevProps) {
-    if (this.props.age > prevProps.age) {
-      console.log('You got older!');
-    }
-  },
-  onTick() {
+  onBreathe() {
     this.setState({ breaths: this.state.breaths + 1 });
   },
   render() {
     return (
       <div>
-        <span>{this.state.breaths}</span>
-        <button onClick={this.setState('breaths', 0)}>
-          Reset Breaths
-        </button>
-        <input
-          {/* memoizes a function that sets the value of 'message' */}
-          onChange={this.setState('message')}
-          value={this.state.message}
-        />
+        <p>breaths: {this.state.breaths}</p>
+        <p>friends: {this.props.friends.length}</p>
+        <button onClick={this.setState('breaths', 0)}>Reset</button>
+        <button onClick={() => addFriend('Hank', 21)}>Befriend</button>
       </div>
     );
   },
 });
-```
-
-## Shorthand Components
-```js
-export default component(({ name = 'Joe',  ticks = 0 }, setState) => (
-  <div>
-    <span>{name}: {ticks}</span>
-    <button onClick={() => setState({ ticks: ticks + 1 })}>Tick</button>
-    <button onClick={setState('ticks', 0)}>Reset</button>
-  </div>
-);
 ```
