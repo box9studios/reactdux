@@ -278,5 +278,5 @@ export default (a, b) => {
     }
   };
   component.defaultProps = config.props;
-  return wrapComponent(component, config.container);
+  return wrapComponent(component, config.container || config.connect);
 };
