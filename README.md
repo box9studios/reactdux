@@ -120,15 +120,19 @@ export default component({
 import { context } from 'reactdux';
 
 const Person = context(
-  { name: 'Paul', age: 28, friends: [] },
   {
-    changeName: () => ({ name: 'Sue' })
-    getOlder: state => ({ age: state.age + 1 }),
+    name: 'Paul',
+    age: 28,
+    friends: [],
+  },
+  (state, setState) => ({
+    changeName: () => setState({ name: 'Bob' }),
+    getOlder: (years = 1) => setState({ age: state.age + years }),
     makeFriends: async () => {
       const friends = fetchFriends();
-      return { friends };
+      setState({ friends });
     },
-  },
+  }),
 );
 
 export default () => (

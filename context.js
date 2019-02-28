@@ -1,29 +1,40 @@
 import React, { createContext, useState } from 'react';
 
-const isNonNullObject = value => value !== null && typeof value === 'object';
-
-export default (defaultState = null, actionConfig = {}) => {
+export default (
+  defaultState = undefined,
+  actionsCreator = () => {},
+) => {
+  const setStateQueue = [];
   const Context = createContext();
   const Consumer = Context.Consumer;
   const Provider = ({ children }) => {
     const [state, setState] = useState(defaultState);
-    const stateTool = (...args) => setState(...args);
-    if (isNonNullObject(state)) {
-      Object.entries(state).forEach(([key, value]) => stateTool[key] = value);
-    }
-    const actions = Object.entries(actionConfig).reduce(
-      (result, [name, method]) => ({
-        ...result,
-        [name]: (...args) => {
-          const result = method(stateTool, ...args);
-          if (result !== undefined) {
-            stateTool(result);
-          }
-        },
-      }),
-      {},
+    const [rand, setRand] = useState(0);
+    const actions = actionsCreator(
+      state,
+      changes => setState({ ...state, ...changes }),
+      (method, ...args) => {
+        setStateQueue.push(`${method}`);
+        setRand(rand + 1);
+      },
     );
-    const value = isNonNullObject(state) ? { ...state, ...actions } : state;
+    if (setStateQueue.length) {
+      while (setStateQueue.length) {
+        const methodStr = setStateQueue.shift();
+        Object.entries(actions).forEach(([key, value]) => {
+          if (`${value}` === methodStr) {
+            value();
+          }
+        });
+      }
+    }
+    const value = (() => {
+      try {
+        return { ...state, ...actions };
+      } catch (error) {
+        return state;
+      }
+    })();
     return (
       <Context.Provider value={value}>
         {children}
