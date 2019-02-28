@@ -1,7 +1,7 @@
 import React, { createContext, useState } from 'react';
 
 export default (
-  defaultState = undefined,
+  defaultState = {},
   actionsCreator = () => {},
 ) => {
   const setStateQueue = [];
@@ -12,7 +12,7 @@ export default (
     const [rand, setRand] = useState(0);
     const actions = actionsCreator(
       state,
-      changes => setState({ ...state, ...changes }),
+      (changes = {}) => setState({ ...state, ...changes }),
       (method, ...args) => {
         setStateQueue.push(`${method}`);
         setRand(rand + 1);
